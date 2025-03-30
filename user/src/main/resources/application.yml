@@ -18,6 +18,17 @@ spring:
         hibernate.format_sql: true
         show_sql: true
         default_batch_fetch_size: 100
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+      jedis:
+        pool:
+          max-idle: 10 # 연결 풀에서 유지될 수 있는 최대 유휴 연결 수
+          min-idle: 2 # 연결 풀에서 유지될 최소 유휴 연결 수
+          max-active: 10 # 연결 풀에서 동시에 활성화된 최대 연결 수
+          max-wait: 2000 # 연결을 얻을 때 대기할 수 있는 최대 시간
 
 # jwt
 jwt:

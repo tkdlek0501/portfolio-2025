@@ -74,14 +74,21 @@ public class SecurityConfig {
                 .logout(
                         httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
                 )
-
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/health"
+                        ).permitAll()
+//                        .requestMatchers("").hasRole(UserType.ADMIN.name())
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
-                .authorizeHttpRequests(authorize -> authorize
-//                        .requestMatchers("").hasRole(UserType.ADMIN.name())
-                        .anyRequest().authenticated()
                 )
 
                 .build();

@@ -1,12 +1,15 @@
 package com.example.user.filter;
 
 import com.example.user.security.UserDetailService;
+import com.example.user.service.UserService;
 import com.example.user.util.jwt.JwtTokenProvidable;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,23 +19,38 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvidable<Authentication> loginJwtTokenProvider;
     private final UserDetailService userDetailService;
 
+    private final List<String> NON_FILTER_PATTERN = Arrays.asList(
+            "/health", "/auth/login", "/user/sign-up"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/swagger") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/h2-console") ||
+                NON_FILTER_PATTERN.stream().anyMatch(requestURI::contains)) {
+            // login
+            filterChain.doFilter(request, response);
+            return; // 로그인 url 을 포함한 불필요한 url 은 여기 필터에서 제외
+        }
+
         String jwt = getJwtFromRequest(request);
 
         // 토큰이 있고 유효한 경우에만 인증 처리
         if (StringUtils.hasText(jwt) && loginJwtTokenProvider.validateToken(jwt)) {
             String name = loginJwtTokenProvider.getUserNameFromJWT(jwt);
 
-            // UserDetails 로드 로직 추가 필요
-            UserDetails user = userDetailService.loadUserByUsername(name);
+            // Redis 에서 사용자 정보를 확인 (최신 상태)
+            UserDetails user = userDetailService.loadUserFromCacheOrDB(name);
 
             if (user != null) {
                 UsernamePasswordAuthenticationToken authenticationToken =
@@ -44,6 +62,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("Invalid or expired token.");
+            return;  // 토큰이 유효하지 않으면 필터를 종료합니다.
         }
 
         filterChain.doFilter(request, response);
