@@ -60,4 +60,46 @@ public class User extends BaseEntity {
     public static String encodePassword(String password, PasswordEncoder passwordEncoder) {
         return passwordEncoder.encode(password);
     }
+
+    public static User create(PasswordEncoder passwordEncoder,
+                              String name,
+                              String password,
+                              String nickname,
+                              String phone,
+                              String email,
+                              UserRole role,
+                              UserGrade grade
+    ) {
+        return User.builder()
+                .name(name)
+                .password(User.encodePassword(password, passwordEncoder))
+                .nickname(nickname)
+                .phone(phone)
+                .email(email)
+                .role(role)
+                .grade(grade)
+                .status(UserStatus.NORMAL)
+                .build();
+    }
+
+    public void modify(
+            PasswordEncoder passwordEncoder,
+            String name,
+            String password,
+            String nickname,
+            String phone,
+            String email
+    ) {
+        this.name = name;
+        this.password = encodePassword(password, passwordEncoder);
+        this.nickname = nickname;
+        this.phone = phone;
+        this.email = email;
+        this.updatedDate = LocalDateTime.now();
+    }
+
+    public void withdrawal() {
+        this.status = UserStatus.WITHDRAWAL;
+        this.updatedDate = LocalDateTime.now();
+    }
 }

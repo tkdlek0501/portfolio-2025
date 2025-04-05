@@ -24,18 +24,4 @@ public record UserCreateRequest(
         @NotNull
         UserGrade grade
 ) {
-
-    public User toEntity(PasswordEncoder passwordEncoder) {
-
-        return User.builder()
-                .name(this.name())
-                .password(User.encodePassword(this.password, passwordEncoder))
-                .nickname(this.nickname)
-                .phone(this.phone)
-                .email(this.email)
-                .role(this.role)
-                .grade(this.grade)
-                .status(UserStatus.NORMAL)
-                .build();
-    }
 }

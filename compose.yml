@@ -6,7 +6,7 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      my-db:
+      my-user-db:
         condition: service_healthy
       my-cache-server:
         condition: service_healthy
