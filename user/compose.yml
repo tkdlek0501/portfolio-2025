@@ -1,5 +1,5 @@
 services:
-  my-server:
+  user-server:
     build: .
     ports:
       - 8080:8080
@@ -8,7 +8,7 @@ services:
         condition: service_healthy
       my-cache-server:
         condition: service_healthy
-  my-db:
+  my-user-db:
     image: mysql
     environment:
       MYSQL_ROOT_PASSWORD: pwd1234

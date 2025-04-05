@@ -1,19 +1,19 @@
 spring:
   application:
     name: user
-#  datasource:
-#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password: password
   datasource:
-    url: jdbc:mysql://my-db:3306/mydb
-    username: root
-    password: pwd1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+#  datasource:
+#    url: jdbc:mysql://my-user-db:3306/mydb
+#    username: root
+#    password: pwd1234
+#    driver-class-name: com.mysql.cj.jdbc.Driver
   h2:
     console:
-      enabled: true
+      enabled: true # 운영 환경에서는 노출 안할 거임
   jpa:
     hibernate:
       ddl-auto: create
