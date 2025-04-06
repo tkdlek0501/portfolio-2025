@@ -3,10 +3,12 @@ package com.example.user.dto.response;
 import com.example.user.exception.GlobalException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
 @Builder
+@Slf4j
 public record GlobalResponse<T>(
         @Schema(description = "응답 상태 (1: 성공, -1: 실패)", example = "1")
         short status,
@@ -63,10 +65,26 @@ public record GlobalResponse<T>(
      * 일반 Exception 처리용 응답
      */
     public static GlobalResponse<Object> of(Exception e) {
+        log.error("error : ", e.getMessage());
+        log.error("error trace :", e.getStackTrace());
+
         return GlobalResponse.builder()
                 .status(STATUS_FAILURE)
                 .code("SYS500")
                 .message("예상하지 못한 에러가 발생했습니다.")
+                .data(Collections.emptyMap())
+                .build();
+    }
+
+    /**
+     * 코드 및 메시지 직접 가공 응답
+     */
+    public static GlobalResponse<Object> of(String code, String message) {
+
+        return GlobalResponse.builder()
+                .status(STATUS_FAILURE)
+                .code(code)
+                .message(message)
                 .data(Collections.emptyMap())
                 .build();
     }

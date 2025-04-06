@@ -31,7 +31,6 @@ public class JwtTokenProvider extends JwtTokenProvidable<Authentication> {
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .setClaims(makeClaimContents(userPrincipal, expiryDate))
-//                .signWith(SignatureAlgorithm.HS512, getJwtSecret())
                 .signWith(getSigningKey()) // 비밀키를 사용하여 서명
                 .compact();
     }

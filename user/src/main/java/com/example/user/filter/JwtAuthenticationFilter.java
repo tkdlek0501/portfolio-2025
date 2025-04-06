@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,9 +53,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 user = userDetailService.loadUserFromCacheOrDB(name);
             } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
-                response.getWriter().write("존재하지 않거나 탈퇴한 유저입니다.");
+                response.getWriter().write(
+                        String.format("{\"code\":%d,\"message\":\"%s\",\"data\":null}", HttpServletResponse.SC_UNAUTHORIZED, "존재하지 않거나 탈퇴한 유저입니다.")
+                );
                 return;
             }
 
@@ -65,9 +68,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
-            response.getWriter().write("현재 토큰이 유효하지 않습니다.");
+            response.getWriter().write(
+                    String.format("{\"code\":%d,\"message\":\"%s\",\"data\":null}", HttpServletResponse.SC_UNAUTHORIZED, "현재 토큰이 유효하지 않습니다.")
+            );
             return;
         }
 
