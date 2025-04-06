@@ -39,3 +39,10 @@ logging:
       hibernate:
         sql: debug
         type: trace
+
+# swagger
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

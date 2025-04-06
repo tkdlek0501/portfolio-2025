@@ -36,7 +36,7 @@ public class SecurityConfig {
     private final UserDetailService userDetailService;
 
     private static final String[] IGNORE_LIST = {
-            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**",
+            "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**",
             "/h2-console/**", "/webjars/**", "/favicon.**",
             "/health", "/auth/login", "/user/sign-up"
     };

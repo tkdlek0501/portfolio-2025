@@ -2,6 +2,7 @@ package com.example.user.advice;
 
 import com.example.user.dto.response.GlobalResponse;
 import com.example.user.exception.GlobalException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class RestControllerAdvice {
 
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<GlobalResponse> handleException(Exception e) {
+    public ResponseEntity<GlobalResponse> handleException(HttpServletRequest request, Exception e) {
         return ResponseEntity.ok(GlobalResponse.of(e));
     }
 
