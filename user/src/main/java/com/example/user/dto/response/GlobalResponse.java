@@ -66,7 +66,7 @@ public record GlobalResponse<T>(
      */
     public static GlobalResponse<Object> of(Exception e) {
         log.error("error : ", e.getMessage());
-        log.error("error trace :", e.getStackTrace());
+        log.error("error trace :", e);
 
         return GlobalResponse.builder()
                 .status(STATUS_FAILURE)
