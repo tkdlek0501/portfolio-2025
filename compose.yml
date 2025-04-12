@@ -12,8 +12,10 @@ services:
     build:
       context: ./user
       dockerfile: Dockerfile
-    ports:
-      - 8081:8080
+    expose:
+      - "8080"
+#    ports:
+#      - 8081:8080
     depends_on:
       my-user-db:
         condition: service_healthy
@@ -23,8 +25,10 @@ services:
     build:
       context: ./board
       dockerfile: Dockerfile
-    ports:
-      - 8082:8080
+    expose:
+      - "8080"
+#    ports:
+#      - 8082:8080
     depends_on:
       my-board-db:
         condition: service_healthy
