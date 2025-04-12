@@ -9,7 +9,6 @@ import com.example.user.exception.AlreadyExistsUserException;
 import com.example.user.exception.ResourceNotFoundException;
 import com.example.user.repository.UserRepository;
 import com.example.user.security.UserDetailService;
-import com.example.user.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,22 +51,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
     }
 
-    @Transactional(readOnly = true)
-    public void updateUserInCache(String name) {
-        User user = getUserByName(name);
-        userDetailService.updateUserInCache(user);
-    }
-
     @Transactional
-    public void update(UserUpdateRequest request) {
-        Long userId = JwtUtil.getId();
-        User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
+    public void update(String userId, UserUpdateRequest request) {
+        User user = userRepository.findByIdAndStatus(Long.valueOf(userId), UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
-        String orgUsername = user.getName();
 
         if (!Objects.equals(user.getName(), request.name())) {
             // 본 user 는 제외
-            if (userRepository.findByNameAndIdNot(request.name(), userId).isPresent()) {
+            if (userRepository.findByNameAndIdNot(request.name(), Long.valueOf(userId)).isPresent()) {
                 throw new AlreadyExistsUserException();
             }
         }
@@ -80,24 +71,22 @@ public class UserService {
                 request.email()
         );
 
-        userDetailService.deleteUserInCache(orgUsername);
+        userDetailService.addBlackList(userId.toString(), user.getName(), "유저 정보 수정");
     }
 
     @Transactional
-    public void withdrawal() {
-        Long userId = JwtUtil.getId();
-        User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
+    public void withdrawal(String userId) {
+        User user = userRepository.findByIdAndStatus(Long.valueOf(userId), UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 
         user.withdrawal();
 
-        userDetailService.deleteUserInCache(user.getName());
+        userDetailService.addBlackList(userId, user.getName(), "유저 탈퇴");
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getMe() {
-        Long userId = JwtUtil.getId();
-        User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
+    public UserResponse getMe(String userId) {
+        User user = userRepository.findByIdAndStatus(Long.valueOf(userId), UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 
         return UserResponse.from(user);

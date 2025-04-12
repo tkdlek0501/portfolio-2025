@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+//@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -30,22 +30,27 @@ public class UserController {
     @Operation(summary = "회원 정보 수정", description = "회원을 수정합니다.")
     @PutMapping("")
     public ResponseEntity<GlobalResponse<Object>> update(
+            @RequestHeader("X-User-ID") String userId,
             @Valid @RequestBody UserUpdateRequest request
     ) {
-        userService.update(request);
+        userService.update(userId, request);
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
     @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴 처리 합니다.")
     @PatchMapping("")
-    public ResponseEntity<GlobalResponse<Object>> withdrawal() {
-        userService.withdrawal();
+    public ResponseEntity<GlobalResponse<Object>> withdrawal(
+            @RequestHeader("X-User-ID") String userId
+    ) {
+        userService.withdrawal(userId);
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
     @Operation(summary = "회원 조회", description = "자신의 정보를 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<GlobalResponse<UserResponse>> getMe() {
-        return ResponseEntity.ok(GlobalResponse.of(userService.getMe()));
+    public ResponseEntity<GlobalResponse<UserResponse>> getMe(
+            @RequestHeader("X-User-ID") String userId
+    ) {
+        return ResponseEntity.ok(GlobalResponse.of(userService.getMe(userId)));
     }
 }
