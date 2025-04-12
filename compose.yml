@@ -19,8 +19,6 @@ services:
     depends_on:
       my-board-db:
         condition: service_healthy
-      my-cache-server:
-        condition: service_healthy
   my-user-db:
     image: mysql
     environment:

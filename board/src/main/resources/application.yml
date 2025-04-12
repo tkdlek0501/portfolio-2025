@@ -27,11 +27,6 @@ spring:
           max-active: 10 # 연결 풀에서 동시에 활성화된 최대 연결 수
           max-wait: 2000 # 연결을 얻을 때 대기할 수 있는 최대 시간
 
-# jwt
-jwt:
-  secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
-  expirationInMs: 86400000
-
 # logging
 logging:
   level:
