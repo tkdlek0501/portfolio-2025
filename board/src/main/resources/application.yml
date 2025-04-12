@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: board
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://my-board-db:3306/mydb
+    username: root
+    password: pwd1234
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    properties:
+      hibernate:
+        hibernate.format_sql: true
+        show_sql: true
+        default_batch_fetch_size: 100
+  data:
+    redis:
+      host: my-cache-server
+      port: 6379
+      timeout: 2000
+      jedis:
+        pool:
+          max-idle: 10 # 연결 풀에서 유지될 수 있는 최대 유휴 연결 수
+          min-idle: 2 # 연결 풀에서 유지될 최소 유휴 연결 수
+          max-active: 10 # 연결 풀에서 동시에 활성화된 최대 연결 수
+          max-wait: 2000 # 연결을 얻을 때 대기할 수 있는 최대 시간
+
+# jwt
+jwt:
+  secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
+  expirationInMs: 86400000
+
+# logging
+logging:
+  level:
+    org:
+      hibernate:
+        sql: debug
+        type: trace
+
+# swagger
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

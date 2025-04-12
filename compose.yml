@@ -10,17 +10,41 @@ services:
         condition: service_healthy
       my-cache-server:
         condition: service_healthy
+  board-server:
+    build:
+      context: ./board
+      dockerfile: Dockerfile
+    ports:
+      - 8081:8080
+    depends_on:
+      my-board-db:
+        condition: service_healthy
+      my-cache-server:
+        condition: service_healthy
   my-user-db:
     image: mysql
     environment:
       MYSQL_ROOT_PASSWORD: pwd1234
       MYSQL_DATABASE: mydb
     volumes:
-      - ./mysql_data:/var/lib/mysql
+      - ./mysql_data/user:/var/lib/mysql
     ports:
       - 3306:3306
     healthcheck:
       test: ["CMD", "mysqladmin", "ping"]
+      interval: 5s
+      retries: 10
+  my-board-db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd1234
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./mysql_data/board:/var/lib/mysql
+    ports:
+      - 3307:3306
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping" ]
       interval: 5s
       retries: 10
   my-cache-server:

@@ -1,10 +1,8 @@
 package com.example.user.controller;
 
-import com.example.user.domain.entity.User;
 import com.example.user.dto.request.LoginRequest;
 import com.example.user.dto.response.GlobalResponse;
 import com.example.user.security.JwtTokenProvider;
-import com.example.user.security.UserDetailService;
 import com.example.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -32,7 +30,7 @@ public class AuthController {
 
     @Operation(summary = "로그인", description = "로그인을 하면 JWT 를 발급합니다.")
     @PostMapping("/login")
-    public ResponseEntity<GlobalResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<GlobalResponse<String>> login(@Valid @RequestBody LoginRequest request) {
         // 로그인 정보 확인
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.name(), request.password()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
