@@ -1,10 +1,12 @@
 package com.example.user.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -15,27 +17,31 @@ import java.util.List;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @io.swagger.v3.oas.annotations.info.Info(title = "API Documents", version = "1", description = "회원 API"),
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "Authorization")
+        info = @Info(
+                title = "API Documentation",
+                version = "1.0.0", // OpenAPI 버전
+                description = "User API Documentation"
+        )
+//        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "Authorization")
 )
 public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .components(new Components()
-                        .addSecuritySchemes("Authorization",
-                                new SecurityScheme()
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                                        .in(SecurityScheme.In.HEADER)
-                                        .name("Authorization")
-                        )
-                )
+//                .components(new Components()
+//                        .addSecuritySchemes("Authorization",
+//                                new SecurityScheme()
+//                                        .type(SecurityScheme.Type.HTTP)
+//                                        .scheme("bearer")
+//                                        .bearerFormat("JWT")
+//                                        .in(SecurityScheme.In.HEADER)
+//                                        .name("Authorization")
+//                        )
+//                )
                 .servers(List.of(
                         new Server().url("http://localhost:8080/api/users") // gateway 의 경로로 수정
-                ))
-                .addSecurityItem(new SecurityRequirement().addList("Authorization"));
+                ));
+//                .addSecurityItem(new SecurityRequirement().addList("Authorization"));
     }
 }
