@@ -54,13 +54,6 @@ public class SecurityConfig {
                         httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/swagger-ui/**",    // Swagger UI 관련 리소스
-                                "/v3/api-docs/**",   // Swagger API 문서
-                                "/swagger-resources/**",  // Swagger 리소스
-                                "/webjars/**",      // Swagger WebJars 리소스
-                                "/swagger-ui.html"  // Swagger UI HTML 페이지
-                        ).permitAll()  // Swagger 관련 리소스 인증 없이 접근 허용
                         .anyRequest().permitAll()  // 나머지 경로는 인증 없이 접근 허용
                 )
                 .headers(headers -> headers

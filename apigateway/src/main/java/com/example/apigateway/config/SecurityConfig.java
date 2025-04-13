@@ -1,40 +1,37 @@
 package com.example.apigateway.config;
 
 import com.example.apigateway.filter.JwtAuthenticationFilter;
-import com.example.apigateway.security.JwtAuthenticationEntryPoint;
+
 import com.example.apigateway.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtTokenProvider jwtTokenProvider;
-    private final StringRedisTemplate redisTemplate;
+    private final ReactiveRedisTemplate<String, String> redisTemplate;
 
     private static final String[] IGNORE_LIST = {
+            // Common=
+
             // User
             "/api/users/v3/api-docs", "/api/users/v3/api-docs/**", "/api/users/swagger-ui/**", "/api/users/swagger-resources/**",
             "/api/users/h2-console/**", "/api/users/webjars/**", "/api/users/favicon.**",
@@ -52,10 +49,10 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate);
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
+//    @Bean
+//    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+//        return configuration.getAuthenticationManager();
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -63,50 +60,27 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS))
-                //FormLogin, BasicHttp, logout 비활성화
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(
-                        httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
+                .csrf(ServerHttpSecurity.CsrfSpec::disable) // CSRF 비활성화
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(IGNORE_LIST).permitAll() // 인증이 필요 없는 경로들
+                        .anyExchange().authenticated() // 그 외 모든 요청은 인증 필요
                 )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(IGNORE_LIST).permitAll()
-                        // user 서비스에 대해서는 인증된 모든 사용자에게 접근 허용
-                        // .requestMatchers("/api/users/**").authenticated()
-
-                        // board 서비스는 관리자만 접근 허용
-                        // .requestMatchers("/api/boards/**").hasRole("ADMIN")
-
-                        // point 서비스는 인증된 사용자에게만 허용
-                        // .requestMatchers("/api/points/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling((exceptionHandling) -> exceptionHandling
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
+                .addFilterBefore(jwtAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION) // JWT 인증 필터 추가
                 .build();
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOriginPatterns(List.of("*"));
-            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            config.setAllowedHeaders(List.of("*"));
-            config.setAllowCredentials(true);
-            config.setMaxAge(3600L);
-            return config;
-        };
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));  // Allow all origins
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow methods
+        config.setAllowedHeaders(List.of("*"));  // Allow all headers
+        config.setAllowCredentials(true); // Allow credentials
+        config.setMaxAge(3600L); // Cache preflight response for 1 hour
+
+        return request -> config;
     }
 }
