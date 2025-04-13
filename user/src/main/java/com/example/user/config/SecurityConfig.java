@@ -25,8 +25,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-//    private final CustomUserDetailsService userDetailsService;
-
     // 비밀번호 인코더 Bean 등록
     @Bean
     public PasswordEncoder passwordEncoder() {

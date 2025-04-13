@@ -47,13 +47,9 @@ logging:
 springdoc:
   api-docs:
     path: /v3/api-docs  # API docs 경로
-
   swagger-ui:
     path: /swagger-ui.html  # Swagger UI 경로
     urls:
       - name: User API
         url: /api/users/v3/api-docs  # Gateway를 거쳐 API Docs를 받아올 경로
-#  api-docs:
-#    enabled: true
-#  swagger-ui:
-#    enabled: true
+    config-url: /api/users/v3/api-docs/swagger-config
