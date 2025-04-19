@@ -4,8 +4,12 @@ import com.example.apigateway.exception.TokenExpiredException;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public abstract class JwtTokenProvidable<T> {
@@ -96,5 +100,13 @@ public abstract class JwtTokenProvidable<T> {
         }
 
         return false;
+    }
+
+    public UserDetails getUserDetails(String token) {
+        // JWT에서 사용자 정보 추출
+        String username = getUserIdFromJWT(token);
+        String role = getUserRoleFromJWT(token);
+
+        return new User(username, "", List.of(new SimpleGrantedAuthority(role)));
     }
 }

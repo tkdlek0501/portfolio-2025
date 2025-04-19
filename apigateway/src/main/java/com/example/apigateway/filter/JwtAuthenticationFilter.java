@@ -3,19 +3,24 @@ package com.example.apigateway.filter;
 import com.example.apigateway.jwt.JwtTokenProvidable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -28,7 +33,7 @@ public class JwtAuthenticationFilter implements WebFilter {
     private final ReactiveRedisTemplate<String, String> redisTemplate;
 
     private static final List<String> NON_FILTER_PATTERN = List.of(
-            "/api/users/auth/login", "/api/users/sign-up", "/swagger", "/v3/api-docs", "/h2-console"
+            "/api/user-server/auth/login", "/api/user-server/users/sign-up", "/swagger", "/v3/api-docs", "/h2-console"
     );
 
     @Override
@@ -41,11 +46,16 @@ public class JwtAuthenticationFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
+        // Authorization 헤더 로그 찍기
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        log.info("[api-gateway-server] Authorization Header: {}", authHeader);
+
         String jwt = getJwtFromRequest(request);
         ServerHttpResponse response = exchange.getResponse();
 
         if (!StringUtils.hasText(jwt) || !loginJwtTokenProvider.validateToken(jwt)) {
-            return unauthorizedResponse(response, "현재 토큰이 유효하지 않습니다.");
+            log.info("[api-gateway-server] 유효하지 않은 토큰 jwt : {}", jwt);
+            return unauthorizedResponse(response, "[api-gateway-server] 현재 토큰이 유효하지 않습니다. jwt : " + jwt);
         }
 
         String username = loginJwtTokenProvider.getUsernameFromJWT(jwt);
@@ -54,52 +64,33 @@ public class JwtAuthenticationFilter implements WebFilter {
         return redisTemplate.hasKey(blacklistKey)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
+                        log.info("[api-gateway-server] 로그아웃 처리된 토큰 jwt : {}", jwt);
                         return unauthorizedResponse(response, "로그아웃된 토큰입니다.");
                     }
 
-                    String userId = loginJwtTokenProvider.getUserIdFromJWT(jwt);
-                    String userRole = loginJwtTokenProvider.getUserRoleFromJWT(jwt);
-                    String userGrade = loginJwtTokenProvider.getUserGradeFromJWT(jwt);
+                    // 인증 객체 생성
+                    UserDetails userDetails = loginJwtTokenProvider.getUserDetails(jwt);
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    SecurityContext context = new SecurityContextImpl(authentication);
 
                     ServerHttpRequest mutatedRequest = request.mutate()
-                            .header("X-User-ID", userId)
-                            .header("X-User-Role", userRole)
-                            .header("X-User-Grade", userGrade)
+                            .headers(httpHeaders -> {
+                                httpHeaders.remove(HttpHeaders.AUTHORIZATION); // 기존 Authorization 제거
+                                httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+                            })
                             .build();
 
-                    return chain.filter(exchange.mutate().request(mutatedRequest).build());
-                });
+                    ServerWebExchange mutatedExchange = exchange.mutate()
+                            .request(mutatedRequest)
+                            .build();
 
-//        if (StringUtils.hasText(jwt) && loginJwtTokenProvider.validateToken(jwt)) {
-//            // 블랙리스트 체크
-//            Boolean isBlacklisted = redisTemplate.hasKey("BL_" + loginJwtTokenProvider.getUsernameFromJWT(jwt));
-//            if (Boolean.TRUE.equals(isBlacklisted)) {
-//                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-//                response.getHeaders().add(HttpHeaders.CONTENT_TYPE, "application/json");
-//                return response.writeWith(Mono.just(response.bufferFactory().wrap(
-//                        "{\"code\":401,\"message\":\"로그아웃된 토큰입니다.\",\"data\":null}".getBytes()
-//                )));
-//            }
-//
-//            // 헤더에 사용자 정보 추가
-//            String userId = loginJwtTokenProvider.getUserIdFromJWT(jwt);
-//            String userRole = loginJwtTokenProvider.getUserRoleFromJWT(jwt);
-//            String userGrade = loginJwtTokenProvider.getUserGradeFromJWT(jwt);
-//
-//            ServerHttpRequest mutatedRequest = request.mutate()
-//                    .header("X-User-ID", userId)
-//                    .header("X-User-Role", userRole)
-//                    .header("X-User-Grade", userGrade)
-//                    .build();
-//
-//            return chain.filter(exchange.mutate().request(mutatedRequest).build());
-//        } else {
-//            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-//            response.getHeaders().add(HttpHeaders.CONTENT_TYPE, "application/json");
-//            return response.writeWith(Mono.just(response.bufferFactory().wrap(
-//                    "{\"code\":401,\"message\":\"현재 토큰이 유효하지 않습니다.\",\"data\":null}".getBytes()
-//            )));
-//        }
+                    log.info("→ 최종 Request URI: {}", mutatedRequest.getURI());
+                    log.info("→ 최종 Authorization Header: {}", mutatedRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
+
+                    return chain.filter(mutatedExchange)
+                            .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
+                });
     }
 
     private Mono<Void> unauthorizedResponse(ServerHttpResponse response, String message) {

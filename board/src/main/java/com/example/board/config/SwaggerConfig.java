@@ -13,8 +13,8 @@ import java.util.List;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @io.swagger.v3.oas.annotations.info.Info(title = "API Documents", version = "1", description = "게시판 API")
-//        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "Authorization")
+        info = @io.swagger.v3.oas.annotations.info.Info(title = "API Documents", version = "1", description = "게시판 API"),
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "Authorization")
 )
 public class SwaggerConfig {
 
@@ -32,8 +32,8 @@ public class SwaggerConfig {
                         )
                 )
                 .servers(List.of(
-                        new Server().url("http://localhost:8080/api/boards") // gateway 의 경로로 수정
-                ));
-//                .addSecurityItem(new SecurityRequirement().addList("Authorization"));
+                        new Server().url("http://localhost:8080/api/board-server") // gateway 의 경로로 수정
+                ))
+                .addSecurityItem(new SecurityRequirement().addList("Authorization"));
     }
 }

@@ -37,10 +37,10 @@ public class UserDetailService implements UserDetailsService {
     }
 
     // 블랙리스트 추가
-    public void addBlackList(String id, String name, String reason) {
+    public void addBlackList(Long id, String name, String reason) {
         // 유저 정보를 JSON 형식으로 생성
         Map<String, String> userInfo = new HashMap<>();
-        userInfo.put("userId", id);
+        userInfo.put("userId", id.toString());
         userInfo.put("reason", reason);
         userInfo.put("timestamp", LocalDateTime.now().toString());
 

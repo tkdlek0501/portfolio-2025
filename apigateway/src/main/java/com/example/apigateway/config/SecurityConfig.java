@@ -2,52 +2,45 @@ package com.example.apigateway.config;
 
 import com.example.apigateway.filter.JwtAuthenticationFilter;
 
-import com.example.apigateway.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-
-import java.util.List;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String[] IGNORE_LIST = {
-            // Common=
+            // gateway
+            "/swagger-ui", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+            "/webjars/**", "/swagger-resources/**", "/favicon.ico",
 
             // User
-            "/api/users/v3/api-docs", "/api/users/v3/api-docs/**", "/api/users/swagger-ui/**", "/api/users/swagger-resources/**",
-            "/api/users/h2-console/**", "/api/users/webjars/**", "/api/users/favicon.**",
-            "/api/users/auth/login", "/api/users/sign-up",
+            "/api/user-server/v3/api-docs", "/api/user-server/v3/api-docs/**", "/api/user-server/swagger-ui/**", "/api/user-server/swagger-resources/**",
+            "/api/user-server/h2-console/**", "/api/user-server/webjars/**", "/api/user-server/favicon.**",
+            "/api/user-server/auth/login", "/api/user-server/users/sign-up",
 
             // Board
-            "/api/boards/v3/api-docs", "/api/boards/v3/api-docs/**", "/api/boards/swagger-ui/**", "/api/boards/swagger-resources/**",
-            "/api/boards/h2-console/**", "/api/boards/webjars/**", "/api/boards/favicon.**",
+            "/api/board-server/v3/api-docs", "/api/board-server/v3/api-docs/**", "/api/board-server/swagger-ui/**", "/api/board-server/swagger-resources/**",
+            "/api/board-server/h2-console/**", "/api/board-server/webjars/**", "/api/board-server/favicon.**",
 
             // Point
     };
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate);
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -57,25 +50,27 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // CSRF 비활성화
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(IGNORE_LIST).permitAll() // 인증이 필요 없는 경로들
                         .anyExchange().authenticated() // 그 외 모든 요청은 인증 필요
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION) // JWT 인증 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION) // JWT 인증 필터 추가
                 .build();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));  // Allow all origins
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow methods
-        config.setAllowedHeaders(List.of("*"));  // Allow all headers
-        config.setAllowCredentials(true); // Allow credentials
-        config.setMaxAge(3600L); // Cache preflight response for 1 hour
+        config.setAllowCredentials(true);
+//        config.addAllowedOriginPattern("*");
+        config.addAllowedOrigin("http://localhost:8080"); // Swagger UI 주소
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
 
-        return request -> config;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsWebFilter(source);
     }
 }

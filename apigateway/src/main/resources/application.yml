@@ -20,16 +20,16 @@ spring:
     gateway:
       routes:
         - id: user-service
-          uri: http://user-server:8080
+          uri: http://user-server:8080 # 실제 경로
           predicates:
-            - Path=/api/users/**
+            - Path=/api/user-server/** # gateway 인입 경로 지정
           filters:
-            - StripPrefix=2
+            - StripPrefix=2 # 실제 경로로 요청시 prefix 제거
 
         - id: board-service
           uri: http://board-server:8080
           predicates:
-            - Path=/api/boards/**
+            - Path=/api/board-server/**
           filters:
             - StripPrefix=2
 
@@ -48,3 +48,13 @@ logging:
       springframework:
         security: debug
         web: debug
+
+# swagger
+springdoc:
+  swagger-ui:
+    enabled: true
+    urls:
+      - name: user-service
+        url: /api/user-server/v3/api-docs
+      - name: board-service
+        url: /api/board-server/v3/api-docs

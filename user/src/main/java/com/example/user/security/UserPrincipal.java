@@ -42,6 +42,15 @@ public class UserPrincipal implements UserDetails {
                 .build();
     }
 
+    public static UserDetails of(Long userId, UserRole role, UserGrade grade) {
+
+        return UserPrincipal.builder()
+                .id(userId)
+                .role(role)
+                .grade(grade)
+                .build();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

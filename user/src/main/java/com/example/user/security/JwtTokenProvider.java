@@ -1,7 +1,7 @@
 package com.example.user.security;
 
 import com.example.user.util.jwt.JwtTokenProvidable;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -51,5 +51,4 @@ public class JwtTokenProvider extends JwtTokenProvidable<Authentication> {
 
         return claims;
     }
-
 }
