@@ -1,6 +1,6 @@
-package com.example.user.security;
+package com.example.board.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 

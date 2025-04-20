@@ -28,7 +28,7 @@ public class UserService {
     private final UserDetailService userDetailService;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
+    // 단 건 저장에서는 굳이 transactional 어노테이션 사용 x, 트랜잭션 범위 최소화
     public void signUp(UserCreateRequest request) {
         if (userRepository.findByName(request.name()).isPresent()) {
             throw new AlreadyExistsUserException();

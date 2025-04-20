@@ -1,6 +1,8 @@
 spring:
   application:
     name: board
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://my-board-db:3306/mydb
@@ -15,6 +17,7 @@ spring:
         hibernate.format_sql: true
         show_sql: true
         default_batch_fetch_size: 100
+    open-in-view: false # view 단 까지 세션 열지 않게 설정
   data:
     redis:
       host: my-cache-server
@@ -27,6 +30,11 @@ spring:
           max-active: 10 # 연결 풀에서 동시에 활성화된 최대 연결 수
           max-wait: 2000 # 연결을 얻을 때 대기할 수 있는 최대 시간
 
+# jwt
+jwt:
+  secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
+  expirationInMs: 86400000
+
 # logging
 logging:
   level:
@@ -34,8 +42,15 @@ logging:
       hibernate:
         sql: debug
         type: trace
+      springframework:
+        security: debug
+        web: debug
 
 # swagger
 springdoc:
   api-docs:
     path: /v3/api-docs  # API docs 경로
+
+# graceful
+server:
+  shutdown: graceful

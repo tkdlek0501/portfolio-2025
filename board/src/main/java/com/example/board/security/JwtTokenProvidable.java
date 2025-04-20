@@ -1,9 +1,10 @@
-package com.example.user.util.jwt;
+package com.example.board.security;
 
-import com.example.user.exception.TokenExpiredException;
+import com.example.board.exception.TokenExpiredException;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Date;

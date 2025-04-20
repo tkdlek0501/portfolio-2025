@@ -1,9 +1,9 @@
-package com.example.user.filter;
+package com.example.board.filter;
 
-import com.example.user.domain.enums.UserGrade;
-import com.example.user.domain.enums.UserRole;
-import com.example.user.security.JwtTokenProvider;
-import com.example.user.security.UserPrincipal;
+import com.example.board.domain.enums.UserGrade;
+import com.example.board.domain.enums.UserRole;
+import com.example.board.security.JwtTokenProvider;
+import com.example.board.security.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     private static final List<String> NON_FILTER_PATTERN = List.of(
-            "/auth/login", "/users/sign-up", "/swagger", "/v3/api-docs", "/h2-console"
+            "/swagger", "/v3/api-docs", "/h2-console"
     );
 
     @Override
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("[user-server] URI = {}, Authorization = {}",
+        log.info("[board-server] URI = {}, Authorization = {}",
                 request.getRequestURI(),
                 request.getHeader(HttpHeaders.AUTHORIZATION));
 

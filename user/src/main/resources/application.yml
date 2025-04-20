@@ -1,6 +1,8 @@
 spring:
   application:
     name: user
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://my-user-db:3306/mydb
@@ -14,7 +16,8 @@ spring:
       hibernate:
         hibernate.format_sql: true
         show_sql: true
-        default_batch_fetch_size: 100
+        default_batch_fetch_size: 100 # 1:N N+1 방지
+    open-in-view: false # view 단 까지 세션 열지 않게 설정
   data:
     redis:
       host: my-cache-server
@@ -47,3 +50,7 @@ logging:
 springdoc:
   api-docs:
     path: /v3/api-docs  # API docs 경로
+
+# graceful
+server:
+  shutdown: graceful

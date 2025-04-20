@@ -12,6 +12,9 @@ public enum ErrorMessage implements BaseCodeMessage {
 
     // 인증, 인가 에러
     TOKEN_EXPIRED("JWT001", "해당 JWT는 만료되었습니다."),
+
+    // 게시글 에러
+    NOT_ALLOWED_POST("PST001", "게시글을 수정할 권한이 없습니다.")
     ;
 
     private final String code;
