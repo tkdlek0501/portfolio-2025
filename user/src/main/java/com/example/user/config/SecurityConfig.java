@@ -1,6 +1,8 @@
 package com.example.user.config;
 
 import com.example.user.filter.JwtAuthenticationFilter;
+import com.example.user.security.CustomAccessDeniedHandler;
+import com.example.user.security.CustomAuthenticationEntryPoint;
 import com.example.user.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +31,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     private static final String[] IGNORE_LIST = {
             "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
@@ -74,6 +78,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 401 처리용
+                        .accessDeniedHandler(customAccessDeniedHandler) // 403 처리용
                 )
                 .build();
     }

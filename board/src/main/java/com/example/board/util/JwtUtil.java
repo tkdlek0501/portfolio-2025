@@ -17,4 +17,16 @@ public class JwtUtil {
             return -1;
         }
     }
+
+    public static String getNickname() {
+        Object authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            UserPrincipal principal = (UserPrincipal) ((UsernamePasswordAuthenticationToken) authentication).getPrincipal();
+
+            return principal.getNickname();
+        } else {
+            return "";
+        }
+    }
 }

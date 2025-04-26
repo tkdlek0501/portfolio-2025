@@ -26,6 +26,9 @@ public class Reply extends BaseEntity {
     @Column(name = "post_id", nullable = false)
     private Long postId;
 
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
+
     @Column(name = "content", nullable = false)
     private String content;
 
@@ -36,4 +39,22 @@ public class Reply extends BaseEntity {
     @Column(name = "updated_date", nullable = false)
     @LastModifiedDate
     private LocalDateTime updatedDate;
+
+    public static Reply create(
+            long userId,
+            long postId,
+            String nickname,
+            String content
+    ) {
+        return Reply.builder()
+                .userId(userId)
+                .postId(postId)
+                .nickname(nickname)
+                .content(content)
+                .build();
+    }
+
+    public void modify(String content) {
+        this.content = content;
+    }
 }

@@ -14,7 +14,6 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -61,6 +60,7 @@ public class JwtAuthenticationFilter implements WebFilter {
         String username = loginJwtTokenProvider.getUsernameFromJWT(jwt);
         String blacklistKey = "BL_" + username;
 
+        // TODO: 블랙 리스트 테스트 필요
         return redisTemplate.hasKey(blacklistKey)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
@@ -74,21 +74,10 @@ public class JwtAuthenticationFilter implements WebFilter {
                             userDetails, null, userDetails.getAuthorities());
                     SecurityContext context = new SecurityContextImpl(authentication);
 
-                    ServerHttpRequest mutatedRequest = request.mutate()
-                            .headers(httpHeaders -> {
-                                httpHeaders.remove(HttpHeaders.AUTHORIZATION); // 기존 Authorization 제거
-                                httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
-                            })
-                            .build();
+                    log.info("[api-gateway-server] 최종 Request URI: {}", request.getURI());
+                    log.info("[api-gateway-server] 최종 Authorization Header: {}", request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
 
-                    ServerWebExchange mutatedExchange = exchange.mutate()
-                            .request(mutatedRequest)
-                            .build();
-
-                    log.info("→ 최종 Request URI: {}", mutatedRequest.getURI());
-                    log.info("→ 최종 Authorization Header: {}", mutatedRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
-
-                    return chain.filter(mutatedExchange)
+                    return chain.filter(exchange)
                             .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
                 });
     }

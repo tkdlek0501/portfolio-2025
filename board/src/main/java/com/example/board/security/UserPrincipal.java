@@ -29,10 +29,12 @@ public class UserPrincipal implements UserDetails {
     private final UserGrade grade;
     private final UserStatus status;
 
-    public static UserDetails of(Long userId, UserRole role, UserGrade grade) {
+    public static UserDetails of(Long userId, String name, String nickname, UserRole role, UserGrade grade) {
 
         return UserPrincipal.builder()
                 .id(userId)
+                .name(name)
+                .nickname(nickname)
                 .role(role)
                 .grade(grade)
                 .build();

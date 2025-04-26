@@ -26,6 +26,9 @@ public class ChildReply extends BaseEntity {
     @Column(name = "reply_id", nullable = false)
     private Long replyId;
 
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
+
     @Column(name = "content", nullable = false)
     private String content;
 
@@ -36,4 +39,22 @@ public class ChildReply extends BaseEntity {
     @Column(name = "updated_date", nullable = false)
     @LastModifiedDate
     private LocalDateTime updatedDate;
+
+    public static ChildReply create(
+            long userId,
+            long replyId,
+            String nickname,
+            String content
+    ) {
+        return ChildReply.builder()
+                .userId(userId)
+                .replyId(replyId)
+                .nickname(nickname)
+                .content(content)
+                .build();
+    }
+
+    public void modify(String content) {
+        this.content = content;
+    }
 }

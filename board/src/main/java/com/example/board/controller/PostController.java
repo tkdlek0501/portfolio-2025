@@ -2,7 +2,9 @@ package com.example.board.controller;
 
 import com.example.board.dto.request.PostCreateRequest;
 import com.example.board.dto.request.PostUpdateRequest;
+import com.example.board.dto.request.ReplyCreateRequest;
 import com.example.board.dto.response.GlobalResponse;
+import com.example.board.dto.response.PostResponse;
 import com.example.board.dto.response.PostWrapResponse;
 import com.example.board.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,5 +55,25 @@ public class PostController {
             @PageableDefault Pageable pageable
     ) {
         return ResponseEntity.ok(GlobalResponse.of(postService.findAllByCategoryId(categoryId, pageable)));
+    }
+
+    @Operation(summary = "게시글 상세 조회", description = "해당 id의 게시글을 상세 조회합니다.")
+    @GetMapping("/{id}")
+    public ResponseEntity<GlobalResponse<PostResponse>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(GlobalResponse.of(postService.findById(id)));
+    }
+
+    @Operation(summary = "게시글 좋아요", description = "해당 id의 게시글의 like를 생성하고 like count를 1 증가 시킵니다.")
+    @PostMapping("/{id}/like")
+    public ResponseEntity<GlobalResponse<Object>> createLike(@PathVariable Long id) {
+        postService.createLike(id);
+        return ResponseEntity.ok(GlobalResponse.of());
+    }
+
+    @Operation(summary = "게시글 좋아요 취소", description = "해당 id 게시글에 생성된 like를 삭제하고 like count를 1 감소 시킵니다.")
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<GlobalResponse<Object>> deleteLike(@PathVariable Long id) {
+        postService.deleteLike(id);
+        return ResponseEntity.ok(GlobalResponse.of());
     }
 }

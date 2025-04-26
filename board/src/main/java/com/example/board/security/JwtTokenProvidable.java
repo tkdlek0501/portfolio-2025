@@ -56,6 +56,12 @@ public abstract class JwtTokenProvidable<T> {
         return claims.get("name").toString();
     }
 
+    public String getNicknameFromJWT(String token) {
+        Claims claims = this.getClaims(token);
+
+        return claims.get("nickname").toString();
+    }
+
     public Claims getClaims(String authorization) {
         Claims claims = null;
 

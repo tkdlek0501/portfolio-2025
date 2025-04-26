@@ -26,6 +26,9 @@ public class Post extends BaseEntity {
     @Column(name = "post_category_id", nullable = false)
     private Long postCategoryId;
 
+    @Column(name = "nickname")
+    private String nickname;
+
     @Column(name = "name", length = 100, nullable = false)
     private String title;
 
@@ -48,12 +51,14 @@ public class Post extends BaseEntity {
 
     public static Post create(
             long userId,
+            String nickname,
             long postCategoryId,
             String title,
             String content
     ) {
         return Post.builder()
                 .userId(userId)
+                .nickname(nickname)
                 .postCategoryId(postCategoryId)
                 .title(title)
                 .content(content)
@@ -68,5 +73,13 @@ public class Post extends BaseEntity {
         this.postCategoryId = postCategoryId;
         this.title = title;
         this.content = content;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount--;
     }
 }

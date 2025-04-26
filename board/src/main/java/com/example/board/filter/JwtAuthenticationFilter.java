@@ -59,10 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 사용자 인증 정보 설정
         long userId = Long.parseLong(jwtTokenProvider.getUserIdFromJWT(jwt));
+        String name = jwtTokenProvider.getUsernameFromJWT(jwt);
+        String nickname = jwtTokenProvider.getNicknameFromJWT(jwt);
         UserRole role = UserRole.valueOf(jwtTokenProvider.getUserRoleFromJWT(jwt));
         UserGrade grade = UserGrade.valueOf(jwtTokenProvider.getUserGradeFromJWT(jwt));
 
-        UserDetails userDetails = UserPrincipal.of(userId, role, grade);
+        UserDetails userDetails = UserPrincipal.of(userId, name, nickname, role, grade);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
 

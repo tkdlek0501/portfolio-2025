@@ -79,7 +79,7 @@ public record GlobalResponse<T>(
     /**
      * 코드 및 메시지 직접 가공 응답
      */
-    public static GlobalResponse<Object> of(String code, String message) {
+    public static GlobalResponse<Object> ofError(String code, String message) {
 
         return GlobalResponse.builder()
                 .status(STATUS_FAILURE)

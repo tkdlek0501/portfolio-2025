@@ -1,14 +1,12 @@
-package com.example.user.advice;
+package com.example.board.advice;
 
-import com.example.user.dto.response.GlobalResponse;
-import com.example.user.exception.GlobalException;
+import com.example.board.dto.response.GlobalResponse;
+import com.example.board.exception.GlobalException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -65,20 +63,5 @@ public class RestControllerAdvice {
     @ResponseBody
     public ResponseEntity<GlobalResponse> handleissingServletRequestParameterException(MissingServletRequestParameterException e) {
         return ResponseEntity.badRequest().body(GlobalResponse.ofError(HttpStatus.BAD_REQUEST.name(), HttpStatus.BAD_REQUEST.getReasonPhrase()));
-    }
-
-    // 비밀번호 틀렸을 경우
-    @ResponseBody
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<GlobalResponse> handleBadCredentialsException(BadCredentialsException e) {
-        return ResponseEntity.badRequest().body(GlobalResponse.ofError("argument", "비밀번호가 일치하지 않습니다."));
-    }
-
-    // id가 틀렸을 경우
-    @ResponseBody
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InternalAuthenticationServiceException.class)
-    public ResponseEntity<GlobalResponse> handleInternalAuthenticationServiceException(InternalAuthenticationServiceException e) {
-        return ResponseEntity.badRequest().body(GlobalResponse.ofError("argument", "존재하지 않는 ID 입니다."));
     }
 }
