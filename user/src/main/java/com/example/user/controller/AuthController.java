@@ -3,7 +3,9 @@ package com.example.user.controller;
 import com.example.user.dto.request.LoginRequest;
 import com.example.user.dto.response.GlobalResponse;
 import com.example.user.security.JwtTokenProvider;
+import com.example.user.security.UserDetailService;
 import com.example.user.service.UserService;
+import com.example.user.util.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserDetailService userDetailService;
 
     @Operation(summary = "로그인", description = "로그인을 하면 JWT 를 발급합니다.")
     @PostMapping("/login")
@@ -34,6 +37,9 @@ public class AuthController {
 
         // JWT 발급
         String jwt = jwtTokenProvider.generateToken(authentication);
+
+        // 블랙리스트에서 제거
+        userDetailService.removeBlackList(JwtUtil.getId());
 
         return ResponseEntity.ok(GlobalResponse.of(jwt));
     }

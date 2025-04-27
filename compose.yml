@@ -4,10 +4,11 @@ services:
       context: ./apigateway
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
+      - "8080:8080"
     depends_on:
       my-cache-server:
         condition: service_healthy
+
   user-server:
     build:
       context: ./user
@@ -21,6 +22,10 @@ services:
         condition: service_healthy
       my-cache-server:
         condition: service_healthy
+    environment:
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9093
+
   board-server:
     build:
       context: ./board
@@ -32,6 +37,10 @@ services:
     depends_on:
       my-board-db:
         condition: service_healthy
+    environment:
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9093
+
   my-user-db:
     image: mysql
     environment:
@@ -40,11 +49,12 @@ services:
     volumes:
       - ./mysql_data/user:/var/lib/mysql
     ports:
-      - 3306:3306
+      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping"]
       interval: 5s
       retries: 10
+
   my-board-db:
     image: mysql
     environment:
@@ -53,16 +63,59 @@ services:
     volumes:
       - ./mysql_data/board:/var/lib/mysql
     ports:
-      - 3307:3306
+      - "3307:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping" ]
       interval: 5s
       retries: 10
+
   my-cache-server:
     image: redis
     ports:
-      - 6379:6379
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_PORT: 9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' # 토픽 자동 생성을 안하도록 막는다
+#    volumes:
+#      - kafka-data:/var/lib/kafka/data # compose down 시 토픽 포함 데이터 휘발되므로 volume 으로 데이터 유지
+    depends_on:
+      - zookeeper
+
+#volumes:
+#  kafka-data: # 카프카는 명시적으로 볼륨을 정의해야 한다
+# 운영 환경에서는 docker 데이터를 volume 으로 가지고 있기!
+
+# KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' 이면 카프카 CLI 로 토픽 수동 생성 필요
+# docker exec -it kafka kafka-topics --create --topic user-updated --bootstrap-server kafka:9093 --partitions 1 --replication-factor 1;
+# -> user-updated 의 경우 전송 순서가 보장돼야 한다 동일 user가 여러번 보냈을 시 순서 보장 필요
+
+# 생성된 토픽 확인
+#  docker exec -it kafka kafka-topics --list --bootstrap-server kafka:9093
+
+# 각 토픽 내 파티션 정보 출력
+# docker exec -it kafka kafka-topics --describe --topic <토픽 이름> --bootstrap-server kafka:9093

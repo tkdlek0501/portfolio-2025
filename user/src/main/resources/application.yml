@@ -29,6 +29,16 @@ spring:
           min-idle: 2 # 연결 풀에서 유지될 최소 유휴 연결 수
           max-active: 10 # 연결 풀에서 동시에 활성화된 최대 연결 수
           max-wait: 2000 # 연결을 얻을 때 대기할 수 있는 최대 시간
+  kafka:
+    producer:
+      bootstrap-servers: kafka:9093  # Kafka 브로커 주소
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer  # 키 직렬화기
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer  # 값 직렬화기
+    consumer:
+      bootstrap-servers: kafka:9093  # Kafka 브로커 주소
+      group-id: my-consumer-group  # Consumer 그룹 ID
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 키 역직렬화기
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer  # 값 역직렬화기
 
 # jwt
 jwt:

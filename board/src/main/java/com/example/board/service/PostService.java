@@ -12,7 +12,7 @@ import com.example.board.exception.ResourceNotFoundException;
 import com.example.board.repository.LikeRepository;
 import com.example.board.repository.PostCategoryRepository;
 import com.example.board.repository.PostRepository;
-import com.example.board.util.JwtUtil;
+import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

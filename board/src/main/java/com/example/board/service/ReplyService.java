@@ -11,7 +11,7 @@ import com.example.board.repository.PostRepository;
 import com.example.board.repository.ReplyRepository;
 import com.example.board.repository.query.ChildReplyQueryRepository;
 import com.example.board.repository.query.ReplyQueryRepository;
-import com.example.board.util.JwtUtil;
+import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

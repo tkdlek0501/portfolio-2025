@@ -102,4 +102,8 @@ public class User extends BaseEntity {
         this.status = UserStatus.WITHDRAWAL;
         this.updatedDate = LocalDateTime.now();
     }
+
+    public boolean isEqualsNickname(String nickname) {
+        return this.nickname.equals(nickname);
+    }
 }

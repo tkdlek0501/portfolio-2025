@@ -37,19 +37,23 @@ public class UserDetailService implements UserDetailsService {
     }
 
     // 블랙리스트 추가
-    public void addBlackList(Long id, String name, String reason) {
+    public void addBlackList(Long id, String reason) {
         // 유저 정보를 JSON 형식으로 생성
         Map<String, String> userInfo = new HashMap<>();
-        userInfo.put("userId", id.toString());
         userInfo.put("reason", reason);
         userInfo.put("timestamp", LocalDateTime.now().toString());
 
         try {
             String userJson = objectMapper.writeValueAsString(userInfo);
             // TODO: TTL jwt 만료시간과 맞추기
-            redisTemplate.opsForValue().set("BL_" + name, userJson, Duration.ofMinutes(30));
+            redisTemplate.opsForValue().set("BL_" + id, userJson, Duration.ofMinutes(30));
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
         }
+    }
+
+    // 블랙리스트 삭제
+    public void removeBlackList(Long id) {
+        redisTemplate.delete("BL_" + id);
     }
 }

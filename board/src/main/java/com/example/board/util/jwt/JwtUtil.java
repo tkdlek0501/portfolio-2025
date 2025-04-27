@@ -1,4 +1,4 @@
-package com.example.board.util;
+package com.example.board.util.jwt;
 
 import com.example.board.security.UserPrincipal;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
