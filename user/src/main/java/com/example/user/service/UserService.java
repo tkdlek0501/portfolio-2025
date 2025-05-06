@@ -6,9 +6,10 @@ import com.example.user.dto.event.UserUpdatedEvent;
 import com.example.user.dto.request.UserCreateRequest;
 import com.example.user.dto.request.UserUpdateRequest;
 import com.example.user.dto.response.UserResponse;
-import com.example.user.event.producer.UserEventProducer;
 import com.example.user.exception.AlreadyExistsUserException;
 import com.example.user.exception.ResourceNotFoundException;
+import com.example.user.helper.factory.OutboxEventFactory;
+import com.example.user.repository.OutboxEventRepository;
 import com.example.user.repository.UserRepository;
 import com.example.user.security.UserDetailService;
 import com.example.user.util.jwt.JwtUtil;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.UUID;
 
 
 @Slf4j
@@ -29,8 +31,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserDetailService userDetailService;
+    private final OutboxEventRepository outboxEventRepository;
+
     private final PasswordEncoder passwordEncoder;
-    private final UserEventProducer userEventProducer;
+    private final ApplicationEventPublisher eventPublisher;
+    private final OutboxEventFactory outboxEventFactory;
 
     // 단 건 저장에서는 굳이 transactional 어노테이션 사용 x, 트랜잭션 범위 최소화
     public void signUp(UserCreateRequest request) {
@@ -56,6 +61,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
     }
 
+    @Transactional
     public void update(UserUpdateRequest request) {
 
         long userId = JwtUtil.getId();
@@ -79,14 +85,14 @@ public class UserService {
                 request.email()
         );
 
-        userRepository.save(user); // 단 건 수정이므로 @Transactional 대신 save 명시해서 처리
-
         // 블랙리스트 추가
         userDetailService.addBlackList(userId, "유저 정보 수정");
 
         // board 서비스와 데이터 정합성 유지를 위한 동기화
+        // 유저 정보 수정시 아웃박스 테이블에 PENDING 상태로 데이터 저장 + 카프카 메시지 발행 (각각 다른 리스너로 처리)
         if (!isEqualsNickname) {
-            userEventProducer.sendUserUpdatedEvent(new UserUpdatedEvent(userId, user.getNickname()));
+            UserUpdatedEvent event = new UserUpdatedEvent(UUID.randomUUID(), userId, user.getNickname());
+            eventPublisher.publishEvent(event);
         }
     }
 

@@ -1,9 +1,6 @@
 package com.example.board.event.consumer;
 
 import com.example.board.dto.event.UserUpdatedEvent;
-import com.example.board.repository.ChildReplyRepository;
-import com.example.board.repository.PostRepository;
-import com.example.board.repository.ReplyRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +18,7 @@ public class UserEventConsumer {
     private final ApplicationEventPublisher eventPublisher;
 
     @KafkaListener(topics = "user-updated", groupId = "board-service")
-    public void handleUserUpdated(byte[] message) {
+    public void handleUserUpdated(String message) {
         try {
             // 메시지 바이트 배열을 객체로 역직렬화
             UserUpdatedEvent event = objectMapper.readValue(message, UserUpdatedEvent.class);

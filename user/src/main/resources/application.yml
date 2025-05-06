@@ -33,12 +33,12 @@ spring:
     producer:
       bootstrap-servers: kafka:9093  # Kafka 브로커 주소
       key-serializer: org.apache.kafka.common.serialization.StringSerializer  # 키 직렬화기
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer  # 값 직렬화기
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 값 직렬화기
     consumer:
       bootstrap-servers: kafka:9093  # Kafka 브로커 주소
       group-id: my-consumer-group  # Consumer 그룹 ID
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 키 역직렬화기
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer  # 값 역직렬화기
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer  # 값 역직렬화기
 
 # jwt
 jwt:
