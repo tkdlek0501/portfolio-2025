@@ -27,7 +27,5 @@ public class UserUpdatedEventListener {
         postRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
         replyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
         childReplyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
-
-        // TODO: 아웃박스 패턴으로 메시지 소비 이후 정상 처리되면 메시지 재발행 리스트에 포함되지 않도록 하기?
     }
 }

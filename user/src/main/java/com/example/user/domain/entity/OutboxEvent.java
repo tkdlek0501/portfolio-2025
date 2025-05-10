@@ -39,6 +39,10 @@ public class OutboxEvent implements Persistable<UUID>, Serializable {
 
     private LocalDateTime sentAt;
 
+    private int retryCount; // 실패건 재시도 횟수
+
+    private LocalDateTime lastTriedAt; // 마지막 시도 시간
+
     @Transient
     @JsonIgnore
     private boolean isNew = true;
@@ -51,6 +55,7 @@ public class OutboxEvent implements Persistable<UUID>, Serializable {
                     .eventType(eventType)
                     .payload(json)
                     .status(EventStatus.PENDING)
+                    .lastTriedAt(LocalDateTime.now())
                     .isNew(true)
                     .build();
     }
@@ -64,6 +69,14 @@ public class OutboxEvent implements Persistable<UUID>, Serializable {
     public void markFailed() {
         this.isNew = false;
         this.status = EventStatus.FAILED;
+    }
+
+    public void increaseRetryCount() {
+        this.retryCount++;
+    }
+
+    public void updateLastTriedAt() {
+        this.lastTriedAt = LocalDateTime.now();
     }
 
     @Override

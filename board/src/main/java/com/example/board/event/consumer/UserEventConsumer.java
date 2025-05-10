@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserEventConsumer {
 
-    private final ObjectMapper objectMapper;  // ObjectMapper를 주입받습니다
+    private final ObjectMapper objectMapper;
 
     private final ApplicationEventPublisher eventPublisher;
 

@@ -3,7 +3,6 @@ package com.example.user.event.listener;
 import com.example.user.domain.entity.OutboxEvent;
 import com.example.user.dto.event.UserUpdatedEvent;
 import com.example.user.event.producer.UserEventProducer;
-import com.example.user.helper.factory.OutboxEventFactory;
 import com.example.user.repository.OutboxEventRepository;
 import com.example.user.util.kafka.TopicResolver;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +28,6 @@ public class UserUpdatedEventMessageListener {
 
         String topic = topicResolver.resolve(outbox.getAggregateType(), outbox.getEventType());
 
-        userEventProducer.sendUserUpdatedEvent(topic, outbox);
+        userEventProducer.sendMessage(topic, outbox);
     }
 }
