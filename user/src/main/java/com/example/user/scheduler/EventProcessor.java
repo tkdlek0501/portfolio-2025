@@ -2,7 +2,6 @@ package com.example.user.scheduler;
 
 import com.example.user.domain.entity.OutboxEvent;
 import com.example.user.domain.enums.EventStatus;
-import com.example.user.event.producer.UserEventProducer;
 import com.example.user.repository.OutboxEventRepository;
 import com.example.user.util.kafka.TopicResolver;
 import lombok.RequiredArgsConstructor;

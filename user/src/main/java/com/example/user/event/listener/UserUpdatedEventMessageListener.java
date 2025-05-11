@@ -2,7 +2,7 @@ package com.example.user.event.listener;
 
 import com.example.user.domain.entity.OutboxEvent;
 import com.example.user.dto.event.UserUpdatedEvent;
-import com.example.user.event.producer.UserEventProducer;
+import com.example.user.event.producer.EventProducer;
 import com.example.user.repository.OutboxEventRepository;
 import com.example.user.util.kafka.TopicResolver;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class UserUpdatedEventMessageListener {
 
-    private final UserEventProducer userEventProducer;
+    private final EventProducer userEventProducer;
     private final TopicResolver topicResolver;
     private final OutboxEventRepository outboxEventRepository;
 
@@ -28,6 +28,6 @@ public class UserUpdatedEventMessageListener {
 
         String topic = topicResolver.resolve(outbox.getAggregateType(), outbox.getEventType());
 
-        userEventProducer.sendMessage(topic, outbox);
+        userEventProducer.send(topic, outbox);
     }
 }

@@ -1,7 +1,6 @@
 package com.example.user.event.producer;
 
 import com.example.user.domain.entity.OutboxEvent;
-import com.example.user.dto.event.UserUpdatedEvent;
 import com.example.user.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +12,13 @@ import org.springframework.stereotype.Component;
 @EnableKafka
 @RequiredArgsConstructor
 @Slf4j
-public class UserEventProducer {
+public class EventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OutboxEventRepository outboxEventRepository;
 
     // 메시지 보내는 메서드 (비동기)
-    public void sendMessage(String topic, OutboxEvent outbox) {
+    public void send(String topic, OutboxEvent outbox) {
         kafkaTemplate.send(topic, outbox.getPayload())
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
