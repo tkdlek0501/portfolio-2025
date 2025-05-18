@@ -57,10 +57,9 @@ public class JwtAuthenticationFilter implements WebFilter {
             return unauthorizedResponse(response, "[api-gateway-server] 현재 토큰이 유효하지 않습니다. jwt : " + jwt);
         }
 
-        String username = loginJwtTokenProvider.getUsernameFromJWT(jwt);
-        String blacklistKey = "BL_" + username;
+        String userId = loginJwtTokenProvider.getUserIdFromJWT(jwt);
+        String blacklistKey = "BL_" + userId;
 
-        // TODO: 블랙 리스트 테스트 필요
         return redisTemplate.hasKey(blacklistKey)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {

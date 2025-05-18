@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class UserUpdatedEventListener {
+public class UserEventListener {
 
     private final PostRepository postRepository;
     private final ReplyRepository replyRepository;
@@ -28,9 +28,9 @@ public class UserUpdatedEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleUserUpdatedEvent(UserUpdatedEvent event) {
         try {
-        postRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
-        replyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
-        childReplyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
+            postRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
+            replyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
+            childReplyRepository.bulkUpdateNicknameByUserId(event.getUserId(), event.getNickname());
         } catch (Exception e) {
             log.error("[board-service] user-updated 처리 실패: {}", e.getMessage(), e);
 

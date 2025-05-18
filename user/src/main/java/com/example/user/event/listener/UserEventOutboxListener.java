@@ -10,7 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
-public class UserUpdatedEventOutboxListener {
+public class UserEventOutboxListener {
 
     private final OutboxEventRepository outboxEventRepository;
     private final OutboxEventFactory outboxEventFactory;

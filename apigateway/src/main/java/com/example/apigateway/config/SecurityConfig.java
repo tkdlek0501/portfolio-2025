@@ -40,6 +40,8 @@ public class SecurityConfig {
             "/api/board-server/h2-console/**", "/api/board-server/webjars/**", "/api/board-server/favicon.**",
 
             // Point
+            "/api/point-server/v3/api-docs", "/api/point-server/v3/api-docs/**", "/api/point-server/swagger-ui/**", "/api/point-server/swagger-resources/**",
+            "/api/point-server/h2-console/**", "/api/point-server/webjars/**", "/api/point-server/favicon.**",
     };
 
     @Bean
@@ -63,7 +65,6 @@ public class SecurityConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-//        config.addAllowedOriginPattern("*");
         config.addAllowedOrigin("http://localhost:8080"); // Swagger UI 주소
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");

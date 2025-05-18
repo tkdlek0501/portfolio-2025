@@ -34,6 +34,12 @@ spring:
       bootstrap-servers: kafka:9093  # Kafka 브로커 주소
       key-serializer: org.apache.kafka.common.serialization.StringSerializer  # 키 직렬화기
       value-serializer: org.apache.kafka.common.serialization.StringSerializer  # 값 직렬화기
+      acks: all
+      retries: 5
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 120000
+        request.timeout.ms: 30000
     consumer:
       bootstrap-servers: kafka:9093  # Kafka 브로커 주소
       group-id: board-service  # Consumer 그룹 ID
@@ -43,7 +49,7 @@ spring:
 # jwt
 jwt:
   secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
-  expirationInMs: 86400000
+  expirationInMs: 1800000
 
 # logging
 logging:

@@ -33,7 +33,7 @@ public class UserEventConsumer {
         }
     }
 
-    @KafkaListener(topics = "user-event.DLQ", groupId = "dlq-monitor-group")
+    @KafkaListener(topics = "user-updated.DLQ", groupId = "dlq-monitor-group")
     public void consumeDlq(ConsumerRecord<String, String> record) {
         log.error("[board-service] user-updated dlq");
         log.error("Topic: {}", record.topic());

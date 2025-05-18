@@ -33,10 +33,17 @@ spring:
           filters:
             - StripPrefix=2
 
+        - id: point-service
+          uri: http://point-server:8080
+          predicates:
+            - Path=/api/point-server/**
+          filters:
+            - StripPrefix=2
+
 # jwt
 jwt:
   secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
-  expirationInMs: 86400000
+  expirationInMs: 1800000
 
 # logging
 logging:
@@ -58,3 +65,5 @@ springdoc:
         url: /api/user-server/v3/api-docs
       - name: board-service
         url: /api/board-server/v3/api-docs
+      - name: point-service
+        url: /api/point-server/v3/api-docs

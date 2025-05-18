@@ -41,6 +41,19 @@ services:
       SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9093
       SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9093
 
+  point-server:
+    build:
+      context: ./point
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    depends_on:
+      my-point-db:
+        condition: service_healthy
+    environment:
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9093
+
   my-user-db:
     image: mysql
     environment:
@@ -64,6 +77,20 @@ services:
       - ./mysql_data/board:/var/lib/mysql
     ports:
       - "3307:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping" ]
+      interval: 5s
+      retries: 10
+
+  my-point-db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd1234
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./mysql_data/point:/var/lib/mysql
+    ports:
+      - "3308:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping" ]
       interval: 5s

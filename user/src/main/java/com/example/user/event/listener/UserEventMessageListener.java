@@ -13,7 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
-public class UserUpdatedEventMessageListener {
+public class UserEventMessageListener {
 
     private final EventProducer userEventProducer;
     private final TopicResolver topicResolver;

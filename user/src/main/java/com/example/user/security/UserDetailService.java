@@ -45,7 +45,6 @@ public class UserDetailService implements UserDetailsService {
 
         try {
             String userJson = objectMapper.writeValueAsString(userInfo);
-            // TODO: TTL jwt 만료시간과 맞추기
             redisTemplate.opsForValue().set("BL_" + id, userJson, Duration.ofMinutes(30));
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());

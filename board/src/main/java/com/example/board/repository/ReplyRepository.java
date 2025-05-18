@@ -20,4 +20,6 @@ public interface ReplyRepository extends JpaRepository<Reply, Long> {
             @Param("userId") Long userId,
             @Param("nickname") String nickname
     );
+
+    Optional<Reply> findByPostIdAndUserId(long postId, long userId);
 }

@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.domain.entity.Like;
 import com.example.board.domain.entity.Post;
+import com.example.board.dto.event.PostCreatedEvent;
 import com.example.board.dto.request.PostCreateRequest;
 import com.example.board.dto.request.PostUpdateRequest;
 import com.example.board.dto.response.PostResponse;
@@ -14,10 +15,13 @@ import com.example.board.repository.PostCategoryRepository;
 import com.example.board.repository.PostRepository;
 import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +30,9 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostCategoryRepository postCategoryRepository;
     private final LikeRepository likeRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     public void create(PostCreateRequest request) {
         postCategoryRepository.findById(request.postCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("postCategory"));
@@ -40,7 +46,14 @@ public class PostService {
         );
         postRepository.save(post);
 
-        // TODO: 게시판 글 작성시 포인트 적립 비동기 이벤트 호출
+        // 게시판 글 작성시 포인트 적립 비동기 이벤트 호출
+        PostCreatedEvent event = new PostCreatedEvent(
+                UUID.randomUUID(),
+                post.getId(),
+                JwtUtil.getId(),
+                50
+        );
+        eventPublisher.publishEvent(event);
     }
 
     @Transactional
@@ -78,9 +91,6 @@ public class PostService {
 
         Page<PostResponse> postResponses = posts
                 .map(p -> PostResponse.of(p.getId(), p.getNickname(), p.getTitle(), p.getContent(), p.getViewCount(), p.getLikeCount()));
-
-        // TODO: 유저의 정보가 조회에서 필요한 상황
-        // 반정규화로 데이터 복제해놓고 데이터가 바뀌면 Kafka 로 갱신 이벤트하는 걸로 처리
 
         return PostWrapResponse.of(postResponses);
     }

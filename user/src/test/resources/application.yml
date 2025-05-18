@@ -28,7 +28,7 @@ spring:
 # jwt
 jwt:
   secret: 3541c154-0a34-4478-aecf-bd0b3badc63c
-  expirationInMs: 86400000
+  expirationInMs: 1800000
 
 # logging
 logging:

@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.domain.entity.ChildReply;
 import com.example.board.domain.entity.Reply;
+import com.example.board.dto.event.ReplyCreatedEvent;
 import com.example.board.dto.request.ReplyCreateRequest;
 import com.example.board.dto.request.ReplyUpdateRequest;
 import com.example.board.dto.response.ReplyResponse;
@@ -13,10 +14,12 @@ import com.example.board.repository.query.ChildReplyQueryRepository;
 import com.example.board.repository.query.ReplyQueryRepository;
 import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +30,26 @@ public class ReplyService {
     private final ChildReplyRepository childReplyRepository;
     private final ChildReplyQueryRepository childReplyQueryRepository;
     private final PostRepository postRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     public void create(long postId, ReplyCreateRequest request) {
         postRepository.findById(postId)
                         .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        replyRepository.save(Reply.create(JwtUtil.getId(), postId, JwtUtil.getNickname(), request.content()));
+        boolean isFirst = replyRepository.findByPostIdAndUserId(postId, JwtUtil.getId()).isEmpty();
+
+        Reply reply = replyRepository.save(Reply.create(JwtUtil.getId(), postId, JwtUtil.getNickname(), request.content()));
+
+        if (isFirst) { // 첫 댓글 작성시 포인트 적립
+            ReplyCreatedEvent event = new ReplyCreatedEvent(
+                    UUID.randomUUID(),
+                    reply.getId(),
+                    JwtUtil.getId(),
+                    5
+            );
+            eventPublisher.publishEvent(event);
+        }
     }
 
     @Transactional
