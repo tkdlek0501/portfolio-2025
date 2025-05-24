@@ -16,6 +16,8 @@ import com.example.board.repository.PostCategoryRepository;
 import com.example.board.repository.PostRepository;
 import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
+    private final RedissonClient redissonClient;
     private final PostRepository postRepository;
     private final PostCategoryRepository postCategoryRepository;
     private final LikeRepository likeRepository;
@@ -109,32 +113,73 @@ public class PostService {
 
     @Transactional
     public void createLike(long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("post"));
+        String lockKey = "board:lock:like:" + id; // 게시물 단위로 동시성 제어
+        RLock lock = redissonClient.getLock(lockKey);
 
-        long userId = JwtUtil.getId();
+        boolean isLocked = false;
 
-        Like like = likeRepository.findByPostIdAndUserId(id, userId)
-                .orElse(null);
-        if (like != null) throw new NotAllowedLikeException();
+        try {
+            // 최대 1초 동안 락을 기다리고, 락을 획득한 뒤 최대 3초 유지
+            isLocked = lock.tryLock(1, 3, TimeUnit.SECONDS);
 
-        likeRepository.save(Like.create(userId, post.getId()));
-        post.increaseLikeCount();
-        // TODO: 동시성 제어 - 같은 게시물에 좋아요를 하려 접근 시 처리 필요 -> redis lock or db lock
+            if (!isLocked) {
+                throw new IllegalStateException("잠시 후 다시 시도해주세요.");
+            }
+
+            Post post = postRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("post"));
+
+            long userId = JwtUtil.getId();
+
+            Like like = likeRepository.findByPostIdAndUserId(id, userId)
+                    .orElse(null);
+            if (like != null) throw new NotAllowedLikeException();
+
+            likeRepository.save(Like.create(userId, post.getId()));
+            post.increaseLikeCount();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("락 획득 중 인터럽트 발생", e);
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) { // 현재 스레드가 락을 가지고 있으면
+                lock.unlock(); // 락 해제
+            }
+        }
     }
 
     @Transactional
     public void deleteLike(long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("post"));
+        String lockKey = "board:lock:like:" + id; // 게시물 단위로 동시성 제어
+        RLock lock = redissonClient.getLock(lockKey);
 
-        long userId = JwtUtil.getId();
+        boolean isLocked = false;
 
-        Like like = likeRepository.findByPostIdAndUserId(id, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("like"));
+        try {
+            isLocked = lock.tryLock(1, 3, TimeUnit.SECONDS);
 
-        likeRepository.delete(like);
-        post.decreaseLikeCount();
-        // TODO: 동시성 제어 - 같은 게시물에 좋아요를 하려 접근 시 처리 필요 -> redis lock or db lock
+            if (!isLocked) {
+                throw new IllegalStateException("잠시 후 다시 시도해주세요.");
+            }
+
+            Post post = postRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("post"));
+
+            long userId = JwtUtil.getId();
+
+            Like like = likeRepository.findByPostIdAndUserId(id, userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("like"));
+
+            likeRepository.delete(like);
+            post.decreaseLikeCount();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("락 획득 중 인터럽트 발생", e);
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 }
