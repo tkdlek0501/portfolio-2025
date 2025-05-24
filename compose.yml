@@ -37,6 +37,8 @@ services:
     depends_on:
       my-board-db:
         condition: service_healthy
+      my-cache-server:
+        condition: service_healthy
     environment:
       SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9093
       SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9093
