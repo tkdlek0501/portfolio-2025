@@ -28,4 +28,14 @@ public class View extends BaseEntity {
     @Column(name = "created_date", nullable = false)
     @CreatedDate
     private LocalDateTime createdDate;
+
+    public static View create(
+            long userId,
+            long postId
+    ) {
+        return View.builder()
+                .userId(userId)
+                .postId(postId)
+                .build();
+    }
 }

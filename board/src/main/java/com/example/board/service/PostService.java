@@ -3,6 +3,7 @@ package com.example.board.service;
 import com.example.board.domain.entity.Like;
 import com.example.board.domain.entity.Post;
 import com.example.board.dto.event.PostCreatedEvent;
+import com.example.board.dto.event.PostViewIncreasedEvent;
 import com.example.board.dto.request.PostCreateRequest;
 import com.example.board.dto.request.PostUpdateRequest;
 import com.example.board.dto.response.PostResponse;
@@ -100,7 +101,8 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        // TODO: 게시글 조회 시 view count 증가 비동기 이벤트 호출
+        // 게시글 조회 시 view count 증가 비동기 이벤트 호출
+        eventPublisher.publishEvent(new PostViewIncreasedEvent(post.getId(), JwtUtil.getId()));
 
         return PostResponse.of(post.getId(), post.getNickname(), post.getTitle(), post.getContent(), post.getViewCount(), post.getLikeCount());
     }
