@@ -23,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -111,16 +113,15 @@ public class PostService {
         return PostResponse.of(post.getId(), post.getNickname(), post.getTitle(), post.getContent(), post.getViewCount(), post.getLikeCount());
     }
 
+    // 해당 프로젝트의 시나리오 상 대용량 트래픽을 고려, 이중화된 환경을 가정하여 Redisson 도입
     @Transactional
     public void createLike(long id) {
         String lockKey = "board:lock:like:" + id; // 게시물 단위로 동시성 제어
         RLock lock = redissonClient.getLock(lockKey);
 
-        boolean isLocked = false;
-
         try {
             // 최대 1초 동안 락을 기다리고, 락을 획득한 뒤 최대 3초 유지
-            isLocked = lock.tryLock(1, 3, TimeUnit.SECONDS);
+            boolean isLocked = lock.tryLock(1, 3, TimeUnit.SECONDS);
 
             if (!isLocked) {
                 throw new IllegalStateException("잠시 후 다시 시도해주세요.");
@@ -138,14 +139,39 @@ public class PostService {
             likeRepository.save(Like.create(userId, post.getId()));
             post.increaseLikeCount();
 
+            // 현재 쓰레드에서 트랜잭션 동기화 활성 여부 체크
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                // 트랜잭션에 콜백 등록
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() { // 커밋 이후 바로 호출
+                        if (lock.isHeldByCurrentThread()) {
+                            lock.unlock();
+                        }
+                    }
+
+                    @Override
+                    public void afterCompletion(int status) { // 트랜잭션 종료(롤백 포함) 후 무조건 호출
+                        if (status != TransactionSynchronization.STATUS_COMMITTED) { // 커밋 안 된 경우(롤백 등)
+                            if (lock.isHeldByCurrentThread()) {
+                                lock.unlock();
+                            }
+                        }
+                    }
+                });
+            } else {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("락 획득 중 인터럽트 발생", e);
-        } finally {
-            if (isLocked && lock.isHeldByCurrentThread()) { // 현재 스레드가 락을 가지고 있으면
-                lock.unlock(); // 락 해제
-            }
         }
+        // 1. 비관적 락 - 확실하게 락을 보장/ 대신 성능 문제 가능
+        // 2. Redissson 분산락 - 애플리케이션 레벨에서 락 관리 가능 + 성능 좋음 / 단 커밋 시점의 락을 보장하지는 못함
+        //  + 낙관적 락 - 트랜잭션 커밋 시점에 락을 보장하여 db 레벨에서의 동시성 문제 해결 가능
+        // 단, version 관리 테이블 추가가 필요하여 고민해볼 사항이 됨
     }
 
     @Transactional

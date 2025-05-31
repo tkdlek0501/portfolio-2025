@@ -65,13 +65,13 @@ public record GlobalResponse<T>(
      * 일반 Exception 처리용 응답
      */
     public static GlobalResponse<Object> of(Exception e) {
-        log.error("error : ", e.getMessage());
+        log.error("error : {}", e.getMessage());
         log.error("error trace :", e);
 
         return GlobalResponse.builder()
                 .status(STATUS_FAILURE)
                 .code("SYS500")
-                .message("예상하지 못한 에러가 발생했습니다.")
+                .message(e.getMessage() != null ? e.getMessage() : "예상하지 못한 에러가 발생했습니다.")
                 .data(Collections.emptyMap())
                 .build();
     }
