@@ -43,6 +43,7 @@ public class OutboxEvent implements Persistable<UUID>, Serializable {
 
     private LocalDateTime lastTriedAt; // 마지막 시도 시간
 
+    @Builder.Default
     @Transient
     @JsonIgnore
     private boolean isNew = true;

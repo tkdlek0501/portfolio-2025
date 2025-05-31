@@ -18,6 +18,7 @@ spring:
         show_sql: true
         default_batch_fetch_size: 100 # 1:N N+1 방지
     open-in-view: false # view 단 까지 세션 열지 않게 설정
+
   data:
     redis:
       host: my-cache-server

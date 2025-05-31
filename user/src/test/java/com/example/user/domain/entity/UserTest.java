@@ -3,12 +3,14 @@ package com.example.user.domain.entity;
 import com.example.user.domain.enums.UserGrade;
 import com.example.user.domain.enums.UserRole;
 import com.example.user.domain.enums.UserStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -19,6 +21,7 @@ public class UserTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @DisplayName("회원가입 성공 테스트")
     @Test
     void create_성공() {
         // given
@@ -49,6 +52,7 @@ public class UserTest {
         assertThat(user.getStatus()).isEqualTo(UserStatus.NORMAL);
     }
 
+    @DisplayName("회원정보수정 성공 테스트")
     @Test
     void modify_성공() {
         // given
@@ -79,6 +83,7 @@ public class UserTest {
         assertThat(user.getUpdatedDate()).isNotNull(); // 시간은 현재 시간과 비교하지 않음
     }
 
+    @DisplayName("회원탈퇴 성공 테스트")
     @Test
     void withdrawal_성공() {
         // given

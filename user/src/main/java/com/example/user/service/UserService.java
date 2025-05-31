@@ -31,11 +31,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserDetailService userDetailService;
-    private final OutboxEventRepository outboxEventRepository;
-
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
-    private final OutboxEventFactory outboxEventFactory;
 
     // 단 건 저장에서는 굳이 transactional 어노테이션 사용 x, 트랜잭션 범위 최소화
     public void signUp(UserCreateRequest request) {
