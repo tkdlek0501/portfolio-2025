@@ -88,8 +88,6 @@ public class PostService {
         }
 
         postRepository.deleteById(id);
-        // TODO: 논리적 삭제 하지 않고 물리적 삭제 + 비동기로 삭제된 게시물 테이블 별도 관리하기
-        // 연관된 댓글, 대댓글도 처리가 필요할지 고민하기
     }
 
     @Transactional(readOnly = true)
