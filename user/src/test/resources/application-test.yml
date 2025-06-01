@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+    open-in-view: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: test-group
+
+jwt:
+  secret: test-secret
+  expirationInMs: 1800000
+
+logging:
+  level:
+    root: error

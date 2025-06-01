@@ -8,8 +8,6 @@ import com.example.user.dto.request.UserUpdateRequest;
 import com.example.user.dto.response.UserResponse;
 import com.example.user.exception.AlreadyExistsUserException;
 import com.example.user.exception.ResourceNotFoundException;
-import com.example.user.helper.factory.OutboxEventFactory;
-import com.example.user.repository.OutboxEventRepository;
 import com.example.user.repository.UserRepository;
 import com.example.user.security.UserDetailService;
 import com.example.user.util.jwt.JwtUtil;
