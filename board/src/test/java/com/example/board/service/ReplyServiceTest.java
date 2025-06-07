@@ -13,7 +13,6 @@ import com.example.board.repository.ReplyRepository;
 import com.example.board.repository.query.ChildReplyQueryRepository;
 import com.example.board.repository.query.ReplyQueryRepository;
 import com.example.board.util.jwt.JwtUtil;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

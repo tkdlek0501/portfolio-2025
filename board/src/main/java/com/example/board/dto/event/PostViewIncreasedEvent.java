@@ -1,11 +1,19 @@
 package com.example.board.dto.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
-@AllArgsConstructor
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostViewIncreasedEvent {
     private Long postId;
     private Long userId;
+
+    public static PostViewIncreasedEvent of(Long postId, Long userId) {
+        return PostViewIncreasedEvent.builder()
+                .postId(postId)
+                .userId(userId)
+                .build();
+    }
 }

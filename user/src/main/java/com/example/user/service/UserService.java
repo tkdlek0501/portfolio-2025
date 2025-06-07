@@ -57,7 +57,7 @@ public class UserService {
     }
 
     @Transactional
-    public void update(UserUpdateRequest request) {
+    public void update(UserUpdateRequest request, String jwt) {
 
         long userId = JwtUtil.getId();
         User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
@@ -81,25 +81,25 @@ public class UserService {
         );
 
         // 블랙리스트 추가
-        userDetailService.addBlackList(userId, "유저 정보 수정");
+        userDetailService.addBlackList(userId, "유저 정보 수정", jwt);
 
         // board 서비스와 데이터 정합성 유지를 위한 동기화
         // 유저 정보 수정시 아웃박스 테이블에 PENDING 상태로 데이터 저장 + 카프카 메시지 발행 (각각 다른 리스너로 처리)
         if (!isEqualsNickname) {
-            UserUpdatedEvent event = new UserUpdatedEvent(UUID.randomUUID(), userId, user.getNickname());
+            UserUpdatedEvent event = UserUpdatedEvent.of(UUID.randomUUID(), userId, user.getNickname());
             eventPublisher.publishEvent(event);
         }
     }
 
     @Transactional
-    public void withdrawal() {
+    public void withdrawal(String jwt) {
         long userId = JwtUtil.getId();
         User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 
         user.withdrawal();
 
-        userDetailService.addBlackList(userId, "유저 탈퇴");
+        userDetailService.addBlackList(userId, "유저 탈퇴", jwt);
     }
 
     @Transactional(readOnly = true)

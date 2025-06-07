@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway-server'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['api-gateway-server:8080']
+
+  - job_name: 'user-server'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['user-server:8080']
+
+  - job_name: 'board-server'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['board-server:8080']
+
+  - job_name: 'point-server'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['point-server:8080']

@@ -38,6 +38,7 @@ public class SecurityConfig {
             "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
             "/webjars/**", "/swagger-resources/**", "/favicon.ico",
             "/auth/login", "/users/sign-up",
+            "/actuator/prometheus", "/metrics",
     };
 
     @Bean

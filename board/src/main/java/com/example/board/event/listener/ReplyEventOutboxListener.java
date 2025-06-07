@@ -1,6 +1,5 @@
 package com.example.board.event.listener;
 
-import com.example.board.dto.event.PostCreatedEvent;
 import com.example.board.dto.event.ReplyCreatedEvent;
 import com.example.board.helper.factory.OutboxEventFactory;
 import com.example.board.repository.OutboxEventRepository;

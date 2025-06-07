@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     private static final List<String> NON_FILTER_PATTERN = List.of(
-            "/auth/login", "/users/sign-up", "/swagger", "/v3/api-docs", "/h2-console"
+            "/auth/login", "/users/sign-up", "/swagger", "/v3/api-docs", "/h2-console", "/actuator/prometheus"
     );
 
     @Override
@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!response.isCommitted()) {
                 response.setContentType("application/json");
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write("{\"message\":\"토큰이 유효하지 않습니다.\"}");
+                response.getWriter().write("{\"status\":-1,\"code\":401,\"message\":\"토큰이 유효하지 않습니다.,\"data\":null}");
             }
             return;
         }

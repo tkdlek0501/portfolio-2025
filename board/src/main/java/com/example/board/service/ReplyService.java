@@ -42,7 +42,7 @@ public class ReplyService {
         Reply reply = replyRepository.save(Reply.create(JwtUtil.getId(), postId, JwtUtil.getNickname(), request.content()));
 
         if (isFirst) { // 첫 댓글 작성시 포인트 적립
-            ReplyCreatedEvent event = new ReplyCreatedEvent(
+            ReplyCreatedEvent event = ReplyCreatedEvent.of(
                     UUID.randomUUID(),
                     reply.getId(),
                     JwtUtil.getId(),
@@ -131,7 +131,7 @@ public class ReplyService {
         }
 
         return childReplies.stream()
-                .map(r ->ReplyResponse.of(r.getId(), r.getNickname(), r.getContent(), r.getCreatedDate(), r.getUpdatedDate()))
+                .map(r -> ReplyResponse.of(r.getId(), r.getNickname(), r.getContent(), r.getCreatedDate(), r.getUpdatedDate()))
                 .toList();
     }
 }

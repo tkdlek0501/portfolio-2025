@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     private static final List<String> NON_FILTER_PATTERN = List.of(
-            "/swagger", "/v3/api-docs", "/h2-console"
+            "/swagger", "/v3/api-docs", "/h2-console", "/actuator/prometheus"
     );
 
     @Override

@@ -36,7 +36,8 @@ public class SecurityConfig {
 
     private static final String[] IGNORE_LIST = {
             "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-            "/webjars/**", "/swagger-resources/**", "/favicon.ico"
+            "/webjars/**", "/swagger-resources/**", "/favicon.ico",
+            "/actuator/prometheus", "/metrics",
     };
 
     @Bean

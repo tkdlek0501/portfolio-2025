@@ -54,7 +54,7 @@ public class PostService {
         postRepository.save(post);
 
         // 게시판 글 작성시 포인트 적립 비동기 이벤트 호출
-        PostCreatedEvent event = new PostCreatedEvent(
+        PostCreatedEvent event = PostCreatedEvent.of(
                 UUID.randomUUID(),
                 post.getId(),
                 JwtUtil.getId(),
@@ -106,7 +106,7 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
         // 게시글 조회 시 view count 증가 비동기 이벤트 호출
-        eventPublisher.publishEvent(new PostViewIncreasedEvent(post.getId(), JwtUtil.getId()));
+        eventPublisher.publishEvent(PostViewIncreasedEvent.of(post.getId(), JwtUtil.getId()));
 
         return PostResponse.of(post.getId(), post.getNickname(), post.getTitle(), post.getContent(), post.getViewCount(), post.getLikeCount());
     }

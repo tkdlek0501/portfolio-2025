@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -27,6 +29,7 @@ public class UserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -37,15 +40,19 @@ public class UserDetailService implements UserDetailsService {
     }
 
     // 블랙리스트 추가
-    public void addBlackList(Long id, String reason) {
+    public void addBlackList(Long id, String reason, String jwt) {
         // 유저 정보를 JSON 형식으로 생성
         Map<String, String> userInfo = new HashMap<>();
         userInfo.put("reason", reason);
         userInfo.put("timestamp", LocalDateTime.now().toString());
 
         try {
+            Date expiredDate = jwtTokenProvider.getExpiredDate(jwt);
+            long ttl = expiredDate.getTime() - System.currentTimeMillis(); // ms 단위
+            long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(ttl); // jwt 남은 시간
+
             String userJson = objectMapper.writeValueAsString(userInfo);
-            redisTemplate.opsForValue().set("BL_" + id, userJson, Duration.ofMinutes(30));
+            redisTemplate.opsForValue().set("BL_" + id, userJson, ttlSeconds);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
         }

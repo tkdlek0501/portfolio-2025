@@ -129,6 +129,7 @@ public class UserServiceTest {
     @Test
     void update_success_withNicknameChange() {
         // given
+        String jwt = "some.jwt.token";
         long userId = 1L;
         UserUpdateRequest request = new UserUpdateRequest("newName", "newPassword", "newNick", "01011112222", "new@example.com");
 
@@ -150,13 +151,13 @@ public class UserServiceTest {
                     request.phone(),
                     request.email());
 
-            doNothing().when(userDetailService).addBlackList(userId, "유저 정보 수정");
+            doNothing().when(userDetailService).addBlackList(userId, "유저 정보 수정", jwt);
 
             // eventPublisher.publishEvent 호출 감시
             doNothing().when(eventPublisher).publishEvent(any(UserUpdatedEvent.class));
 
             // when
-            userService.update(request);
+            userService.update(request, jwt);
 
             // then
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
@@ -168,7 +169,7 @@ public class UserServiceTest {
                     request.nickname(),
                     request.phone(),
                     request.email());
-            verify(userDetailService).addBlackList(userId, "유저 정보 수정");
+            verify(userDetailService).addBlackList(userId, "유저 정보 수정", jwt);
             verify(eventPublisher).publishEvent(any(UserUpdatedEvent.class));
         }
     }
@@ -176,6 +177,8 @@ public class UserServiceTest {
     @DisplayName("회원정보 수정 시 예외 발생")
     @Test
     void update_fail_whenNameDuplicate() {
+        // given
+        String jwt = "some.jwt.token";
         long userId = 1L;
         UserUpdateRequest request = new UserUpdateRequest("existingName", "pass", "nick", "phone", "email");
 
@@ -193,11 +196,11 @@ public class UserServiceTest {
             when(user.getName()).thenReturn("oldName");
 
             // when & then
-            Assertions.assertThrows(AlreadyExistsUserException.class, () -> userService.update(request));
+            Assertions.assertThrows(AlreadyExistsUserException.class, () -> userService.update(request, jwt));
 
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
             verify(userRepository).findByNameAndIdNot(request.name(), userId);
-            verify(userDetailService, never()).addBlackList(anyLong(), anyString());
+            verify(userDetailService, never()).addBlackList(anyLong(), anyString(), anyString());
             verify(eventPublisher, never()).publishEvent(any());
         }
     }
@@ -205,21 +208,25 @@ public class UserServiceTest {
     @DisplayName("회원탈퇴 성공 테스트")
     @Test
     void withdrawal_success() {
+        // given
+        String jwt = "some.jwt.token";
         long userId = 1L;
         User user = mock(User.class);
 
         try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
+            // when
             jwtMock.when(JwtUtil::getId).thenReturn(userId);
             when(userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)).thenReturn(Optional.of(user));
 
             doNothing().when(user).withdrawal();
-            doNothing().when(userDetailService).addBlackList(userId, "유저 탈퇴");
+            doNothing().when(userDetailService).addBlackList(userId, "유저 탈퇴", jwt);
 
-            userService.withdrawal();
+            // then
+            userService.withdrawal(jwt);
 
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
             verify(user).withdrawal();
-            verify(userDetailService).addBlackList(userId, "유저 탈퇴");
+            verify(userDetailService).addBlackList(userId, "유저 탈퇴", jwt);
         }
     }
 

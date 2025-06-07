@@ -55,6 +55,12 @@ public abstract class JwtTokenProvidable<T> {
         return claims.get("name").toString();
     }
 
+    public Date getExpiredDate(String token) {
+        Claims claims = this.getClaims(token);
+
+        return claims.getExpiration();
+    }
+
     public Claims getClaims(String authorization) {
         Claims claims = null;
 

@@ -22,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -47,6 +49,9 @@ public class UserDetailServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
 
     @InjectMocks
     private UserDetailService userDetailService;
@@ -98,34 +103,46 @@ public class UserDetailServiceTest {
     @Test
     void addBlackList_정상작동() throws JsonProcessingException {
         // given
+        String jwt = "some.jwt.token";
         Long userId = 1L;
         String reason = "로그아웃";
-        String expectedJson = "{\"reason\":\"로그아웃\",\"timestamp\":\"2025-05-31T12:00:00\"}";
 
-        // mock objectMapper
+        // 만료 시간: 현재 시간 + 30분
+        Date expiredDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
+        when(jwtTokenProvider.getExpiredDate(jwt)).thenReturn(expiredDate);
+
+        // objectMapper -> JSON 문자열 mock
+        String expectedJson = "{\"reason\":\"로그아웃\",\"timestamp\":\"2025-06-07T12:00:00\"}";
         when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
-        // 아래 메서드에서 String userJson 부분
+
         // when
-        userDetailService.addBlackList(userId, reason);
+        userDetailService.addBlackList(userId, reason, jwt);
 
         // then
-        verify(valueOperations).set(eq("BL_" + userId), eq(expectedJson), eq(Duration.ofMinutes(30)));
+        verify(valueOperations).set(eq("BL_" + userId), eq(expectedJson), anyLong());
     }
 
     @DisplayName("addBlackList_Json변환에러_로그출력")
     @Test
     void addBlackList_Json변환에러_로그출력() throws JsonProcessingException {
         // given
+        String jwt = "some.jwt.token";
         Long userId = 1L;
         String reason = "로그아웃";
 
-        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+        // 만료 시간: 현재 시간 + 30분
+        Date expiredDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
+        when(jwtTokenProvider.getExpiredDate(jwt)).thenReturn(expiredDate);
+
+        // JsonProcessingException은 추상 클래스이므로 익명 객체로 생성
+        JsonProcessingException exception = mock(JsonProcessingException.class);
+        when(objectMapper.writeValueAsString(any())).thenThrow(exception);
 
         // when
-        userDetailService.addBlackList(userId, reason);
+        userDetailService.addBlackList(userId, reason, jwt);
 
         // then
-        verify(valueOperations, never()).set(any(), any(), any());
+        verify(valueOperations, never()).set(any(), any(), anyLong());
     }
 
     @DisplayName("removeBlackList_정상작동")

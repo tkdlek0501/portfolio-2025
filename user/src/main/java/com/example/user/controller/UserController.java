@@ -31,16 +31,17 @@ public class UserController {
     @Operation(summary = "회원 정보 수정", description = "회원을 수정합니다.", security = @SecurityRequirement(name = "Authorization"))
     @PutMapping("")
     public ResponseEntity<GlobalResponse<Object>> update(
+            @RequestHeader("Authorization") String jwt,
             @Valid @RequestBody UserUpdateRequest request
     ) {
-        userService.update(request);
+        userService.update(request, jwt);
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
     @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴 처리 합니다.", security = @SecurityRequirement(name = "Authorization"))
     @PatchMapping("")
-    public ResponseEntity<GlobalResponse<Object>> withdrawal() {
-        userService.withdrawal();
+    public ResponseEntity<GlobalResponse<Object>> withdrawal(@RequestHeader("Authorization") String jwt) {
+        userService.withdrawal(jwt);
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
