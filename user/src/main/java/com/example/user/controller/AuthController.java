@@ -2,10 +2,9 @@ package com.example.user.controller;
 
 import com.example.user.dto.request.LoginRequest;
 import com.example.user.dto.response.GlobalResponse;
+import com.example.user.filter.UserContext;
 import com.example.user.security.JwtTokenProvider;
 import com.example.user.security.UserDetailService;
-import com.example.user.service.UserService;
-import com.example.user.util.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,7 @@ public class AuthController {
         String jwt = jwtTokenProvider.generateToken(authentication);
 
         // 블랙리스트에서 제거
-        userDetailService.removeBlackList(JwtUtil.getId());
+        userDetailService.removeBlackList(UserContext.getId());
 
         return ResponseEntity.ok(GlobalResponse.of(jwt));
     }

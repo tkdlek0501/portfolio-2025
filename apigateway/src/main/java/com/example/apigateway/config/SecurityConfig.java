@@ -1,6 +1,6 @@
 package com.example.apigateway.config;
 
-//import com.example.apigateway.filter.JwtAuthenticationFilterOld;
+import com.example.apigateway.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @Slf4j
 public class SecurityConfig {
 
-//    private final JwtAuthenticationFilterOld jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String[] IGNORE_LIST = {
             // gateway
@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .pathMatchers(IGNORE_LIST).permitAll() // 인증이 필요 없는 경로들
                         .anyExchange().authenticated() // 그 외 모든 요청은 인증 필요
                 )
-//                .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION) // JWT 인증 필터 추가 -> AbstractGatewayFilterFactory 로 수정
+                .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION) // JWT 인증 필터 추가
                 .build();
     }
 

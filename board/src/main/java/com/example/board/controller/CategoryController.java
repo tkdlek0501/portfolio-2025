@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,7 +18,6 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @Operation(summary = "카테고리 생성", description = "postCategory 를 생성합니다.")
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("")
     public ResponseEntity<GlobalResponse<Object>> create(
             @Valid @RequestBody CategoryCreateRequest request
@@ -29,7 +27,6 @@ public class CategoryController {
     }
 
     @Operation(summary = "카테고리 수정", description = "postCategory 를 수정합니다.")
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<GlobalResponse<Object>> update(
             @PathVariable Long id,
@@ -40,7 +37,6 @@ public class CategoryController {
     }
 
     @Operation(summary = "카테고리 삭제", description = "postCategory 를 삭제합니다.")
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<GlobalResponse<Object>> delete(@PathVariable Long id) {
         categoryService.delete(id);

@@ -1,9 +1,7 @@
 package com.example.user.config;
 
-import com.example.user.filter.JwtAuthenticationFilter;
 import com.example.user.security.CustomAccessDeniedHandler;
 import com.example.user.security.CustomAuthenticationEntryPoint;
-import com.example.user.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +16,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,21 +27,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-    private static final String[] IGNORE_LIST = {
-            "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-            "/webjars/**", "/swagger-resources/**", "/favicon.ico",
-            "/auth/login", "/users/sign-up",
-            "/actuator/prometheus", "/metrics",
-    };
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
-    }
+//    private static final String[] IGNORE_LIST = {
+//            "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+//            "/webjars/**", "/swagger-resources/**", "/favicon.ico",
+//            "/auth/login", "/users/sign-up",
+//            "/actuator/prometheus", "/metrics",
+//    };
 
     // 비밀번호 인코더 Bean 등록
     @Bean
@@ -73,10 +64,8 @@ public class SecurityConfig {
                         httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(IGNORE_LIST).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // gateway 에 인증 위임
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )

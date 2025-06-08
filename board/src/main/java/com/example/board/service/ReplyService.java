@@ -7,12 +7,12 @@ import com.example.board.dto.request.ReplyCreateRequest;
 import com.example.board.dto.request.ReplyUpdateRequest;
 import com.example.board.dto.response.ReplyResponse;
 import com.example.board.exception.ResourceNotFoundException;
+import com.example.board.filter.UserContext;
 import com.example.board.repository.ChildReplyRepository;
 import com.example.board.repository.PostRepository;
 import com.example.board.repository.ReplyRepository;
 import com.example.board.repository.query.ChildReplyQueryRepository;
 import com.example.board.repository.query.ReplyQueryRepository;
-import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -37,15 +37,15 @@ public class ReplyService {
         postRepository.findById(postId)
                         .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        boolean isFirst = replyRepository.findByPostIdAndUserId(postId, JwtUtil.getId()).isEmpty();
+        boolean isFirst = replyRepository.findByPostIdAndUserId(postId, UserContext.getId()).isEmpty();
 
-        Reply reply = replyRepository.save(Reply.create(JwtUtil.getId(), postId, JwtUtil.getNickname(), request.content()));
+        Reply reply = replyRepository.save(Reply.create(UserContext.getId(), postId, UserContext.getNickname(), request.content()));
 
         if (isFirst) { // 첫 댓글 작성시 포인트 적립
             ReplyCreatedEvent event = ReplyCreatedEvent.of(
                     UUID.randomUUID(),
                     reply.getId(),
-                    JwtUtil.getId(),
+                    UserContext.getId(),
                     5
             );
             eventPublisher.publishEvent(event);
@@ -57,7 +57,7 @@ public class ReplyService {
         postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        Reply reply = replyRepository.findByIdAndUserId(id, JwtUtil.getId())
+        Reply reply = replyRepository.findByIdAndUserId(id, UserContext.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("reply"));
 
         reply.modify(request.content());
@@ -67,7 +67,7 @@ public class ReplyService {
         postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        Reply reply = replyRepository.findByIdAndUserId(id, JwtUtil.getId())
+        Reply reply = replyRepository.findByIdAndUserId(id, UserContext.getId())
                         .orElseThrow(() -> new ResourceNotFoundException("reply"));
 
         replyRepository.delete(reply);
@@ -94,7 +94,7 @@ public class ReplyService {
         replyRepository.findById(replyId)
                 .orElseThrow(() -> new ResourceNotFoundException("reply"));
 
-        childReplyRepository.save(ChildReply.create(JwtUtil.getId(), replyId, JwtUtil.getNickname(), request.content()));
+        childReplyRepository.save(ChildReply.create(UserContext.getId(), replyId, UserContext.getNickname(), request.content()));
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class ReplyService {
         replyRepository.findById(replyId)
                 .orElseThrow(() -> new ResourceNotFoundException("reply"));
 
-        ChildReply childReply = childReplyRepository.findByIdAndUserId(id, JwtUtil.getId())
+        ChildReply childReply = childReplyRepository.findByIdAndUserId(id, UserContext.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("childReply"));
 
         childReply.modify(request.content());
@@ -112,7 +112,7 @@ public class ReplyService {
         replyRepository.findById(replyId)
                 .orElseThrow(() -> new ResourceNotFoundException("reply"));
 
-        ChildReply childReply = childReplyRepository.findByIdAndUserId(id, JwtUtil.getId())
+        ChildReply childReply = childReplyRepository.findByIdAndUserId(id, UserContext.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("childReply"));
 
         childReplyRepository.delete(childReply);

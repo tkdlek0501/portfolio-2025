@@ -7,12 +7,12 @@ import com.example.board.dto.event.ReplyCreatedEvent;
 import com.example.board.dto.request.ReplyCreateRequest;
 import com.example.board.dto.request.ReplyUpdateRequest;
 import com.example.board.dto.response.ReplyResponse;
+import com.example.board.filter.UserContext;
 import com.example.board.repository.ChildReplyRepository;
 import com.example.board.repository.PostRepository;
 import com.example.board.repository.ReplyRepository;
 import com.example.board.repository.query.ChildReplyQueryRepository;
 import com.example.board.repository.query.ReplyQueryRepository;
-import com.example.board.util.jwt.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,9 +66,9 @@ public class ReplyServiceTest {
 
         ReplyCreateRequest request = new ReplyCreateRequest(content);
 
-        try (MockedStatic<JwtUtil> mockedJwt = Mockito.mockStatic(JwtUtil.class)) {
-            mockedJwt.when(JwtUtil::getId).thenReturn(userId);
-            mockedJwt.when(JwtUtil::getNickname).thenReturn(nickname);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
+            mockedJwt.when(UserContext::getNickname).thenReturn(nickname);
 
             when(postRepository.findById(postId)).thenReturn(Optional.of(mock()));
             when(replyRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.empty());
@@ -93,9 +93,9 @@ public class ReplyServiceTest {
 
         ReplyCreateRequest request = new ReplyCreateRequest(content);
 
-        try (MockedStatic<JwtUtil> mockedJwt = Mockito.mockStatic(JwtUtil.class)) {
-            mockedJwt.when(JwtUtil::getId).thenReturn(userId);
-            mockedJwt.when(JwtUtil::getNickname).thenReturn(nickname);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
+            mockedJwt.when(UserContext::getNickname).thenReturn(nickname);
 
             when(postRepository.findById(postId)).thenReturn(Optional.of(mock()));
             when(replyRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.empty());
@@ -117,8 +117,8 @@ public class ReplyServiceTest {
         ReplyUpdateRequest request = new ReplyUpdateRequest("updated");
         Reply reply = mock(Reply.class);
 
-        try (MockedStatic<JwtUtil> mockedJwt = Mockito.mockStatic(JwtUtil.class)) {
-            mockedJwt.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
 
             given(postRepository.findById(postId)).willReturn(Optional.of(mock(Post.class)));
             given(replyRepository.findByIdAndUserId(replyId, userId)).willReturn(Optional.of(reply));
@@ -139,8 +139,8 @@ public class ReplyServiceTest {
         long userId = 101L;
         Reply reply = mock(Reply.class);
 
-        try (MockedStatic<JwtUtil> mockedJwt = Mockito.mockStatic(JwtUtil.class)) {
-            mockedJwt.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
             given(postRepository.findById(postId)).willReturn(Optional.of(mock(Post.class)));
             given(replyRepository.findByIdAndUserId(replyId, userId)).willReturn(Optional.of(reply));
 
@@ -181,14 +181,20 @@ public class ReplyServiceTest {
     void createChild_성공() {
         // given
         long replyId = 1L;
+        long userId = 101L;
+        String nickname = "testUser";
         ReplyCreateRequest request = new ReplyCreateRequest("child content");
 
         given(replyRepository.findById(replyId)).willReturn(Optional.of(mock(Reply.class)));
 
         // when
-        replyService.createChild(replyId, request);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
+            mockedJwt.when(UserContext::getNickname).thenReturn(nickname);
+            replyService.createChild(replyId, request);
 
-        // then
-        verify(childReplyRepository).save(any(ChildReply.class));
+            // then
+            verify(childReplyRepository).save(any(ChildReply.class));
+        }
     }
 }

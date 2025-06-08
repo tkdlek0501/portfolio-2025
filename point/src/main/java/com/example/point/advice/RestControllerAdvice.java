@@ -1,7 +1,7 @@
-package com.example.board.advice;
+package com.example.point.advice;
 
-import com.example.board.dto.response.GlobalResponse;
-import com.example.board.exception.GlobalException;
+import com.example.point.dto.response.GlobalResponse;
+import com.example.point.exception.GlobalException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

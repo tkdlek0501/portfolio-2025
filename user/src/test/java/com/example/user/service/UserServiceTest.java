@@ -10,9 +10,9 @@ import com.example.user.dto.request.UserUpdateRequest;
 import com.example.user.dto.response.UserResponse;
 import com.example.user.exception.AlreadyExistsUserException;
 import com.example.user.exception.ResourceNotFoundException;
+import com.example.user.filter.UserContext;
 import com.example.user.repository.UserRepository;
 import com.example.user.security.UserDetailService;
-import com.example.user.util.jwt.JwtUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,14 +24,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -136,8 +133,8 @@ public class UserServiceTest {
         User user = mock(User.class);
 
         // JwtUtil.getId()가 실제 호출되는 걸 막으려면 JwtUtil을 mock 해야 함
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
 
             when(userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)).thenReturn(Optional.of(user));
             when(userRepository.findByNameAndIdNot(request.name(), userId)).thenReturn(Optional.empty());
@@ -151,13 +148,13 @@ public class UserServiceTest {
                     request.phone(),
                     request.email());
 
-            doNothing().when(userDetailService).addBlackList(userId, "유저 정보 수정", jwt);
+            doNothing().when(userDetailService).addBlackList(userId, "유저 정보 수정");
 
             // eventPublisher.publishEvent 호출 감시
             doNothing().when(eventPublisher).publishEvent(any(UserUpdatedEvent.class));
 
             // when
-            userService.update(request, jwt);
+            userService.update(request);
 
             // then
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
@@ -169,7 +166,7 @@ public class UserServiceTest {
                     request.nickname(),
                     request.phone(),
                     request.email());
-            verify(userDetailService).addBlackList(userId, "유저 정보 수정", jwt);
+            verify(userDetailService).addBlackList(userId, "유저 정보 수정");
             verify(eventPublisher).publishEvent(any(UserUpdatedEvent.class));
         }
     }
@@ -184,8 +181,8 @@ public class UserServiceTest {
 
         User user = mock(User.class);
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
 
             when(userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)).thenReturn(Optional.of(user));
             when(userRepository.findByNameAndIdNot(request.name(), userId)).thenReturn(Optional.of(mock(User.class)));
@@ -196,11 +193,11 @@ public class UserServiceTest {
             when(user.getName()).thenReturn("oldName");
 
             // when & then
-            Assertions.assertThrows(AlreadyExistsUserException.class, () -> userService.update(request, jwt));
+            Assertions.assertThrows(AlreadyExistsUserException.class, () -> userService.update(request));
 
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
             verify(userRepository).findByNameAndIdNot(request.name(), userId);
-            verify(userDetailService, never()).addBlackList(anyLong(), anyString(), anyString());
+            verify(userDetailService, never()).addBlackList(anyLong(), anyString());
             verify(eventPublisher, never()).publishEvent(any());
         }
     }
@@ -213,20 +210,20 @@ public class UserServiceTest {
         long userId = 1L;
         User user = mock(User.class);
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
             // when
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+            jwtMock.when(UserContext::getId).thenReturn(userId);
             when(userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)).thenReturn(Optional.of(user));
 
             doNothing().when(user).withdrawal();
-            doNothing().when(userDetailService).addBlackList(userId, "유저 탈퇴", jwt);
+            doNothing().when(userDetailService).addBlackList(userId, "유저 탈퇴");
 
             // then
-            userService.withdrawal(jwt);
+            userService.withdrawal();
 
             verify(userRepository).findByIdAndStatus(userId, UserStatus.NORMAL);
             verify(user).withdrawal();
-            verify(userDetailService).addBlackList(userId, "유저 탈퇴", jwt);
+            verify(userDetailService).addBlackList(userId, "유저 탈퇴");
         }
     }
 
@@ -238,8 +235,8 @@ public class UserServiceTest {
         UserResponse userResponse = mock(UserResponse.class);
 
         try (MockedStatic<UserResponse> userResponseMock = Mockito.mockStatic(UserResponse.class)) {
-            try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-                jwtMock.when(JwtUtil::getId).thenReturn(userId);
+            try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+                jwtMock.when(UserContext::getId).thenReturn(userId);
 
                 when(userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)).thenReturn(Optional.of(user));
 

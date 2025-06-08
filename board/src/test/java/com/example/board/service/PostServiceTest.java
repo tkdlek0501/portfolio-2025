@@ -8,10 +8,10 @@ import com.example.board.dto.request.PostCreateRequest;
 import com.example.board.dto.request.PostUpdateRequest;
 import com.example.board.dto.response.PostResponse;
 import com.example.board.dto.response.PostWrapResponse;
+import com.example.board.filter.UserContext;
 import com.example.board.repository.LikeRepository;
 import com.example.board.repository.PostCategoryRepository;
 import com.example.board.repository.PostRepository;
-import com.example.board.util.jwt.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,9 +72,9 @@ public class PostServiceTest {
         PostCategory category = mock(PostCategory.class);
         when(postCategoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
-            jwtMock.when(JwtUtil::getNickname).thenReturn(nickname);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
+            jwtMock.when(UserContext::getNickname).thenReturn(nickname);
 
             // when
             postService.create(request);
@@ -99,8 +99,8 @@ public class PostServiceTest {
 
         when(post.getUserId()).thenReturn(userId);
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
 
             // when
             postService.update(postId, request);
@@ -121,8 +121,8 @@ public class PostServiceTest {
 
         when(post.getUserId()).thenReturn(userId);
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
 
             postService.delete(postId);
 
@@ -182,8 +182,8 @@ public class PostServiceTest {
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(likeRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.empty());
 
-        try (MockedStatic<JwtUtil> jwtMock = Mockito.mockStatic(JwtUtil.class)) {
-            jwtMock.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> jwtMock = Mockito.mockStatic(UserContext.class)) {
+            jwtMock.when(UserContext::getId).thenReturn(userId);
 
             postService.createLike(postId);
 
@@ -200,8 +200,8 @@ public class PostServiceTest {
         long userId = 42L;
 
         // JwtUtil 정적 메서드 mocking
-        try (MockedStatic<JwtUtil> mockedJwt = Mockito.mockStatic(JwtUtil.class)) {
-            mockedJwt.when(JwtUtil::getId).thenReturn(userId);
+        try (MockedStatic<UserContext> mockedJwt = Mockito.mockStatic(UserContext.class)) {
+            mockedJwt.when(UserContext::getId).thenReturn(userId);
 
             Post post = mock(Post.class);
 

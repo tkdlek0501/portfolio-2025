@@ -5,6 +5,7 @@ import com.example.user.domain.enums.UserGrade;
 import com.example.user.domain.enums.UserRole;
 import com.example.user.domain.enums.UserStatus;
 import com.example.user.exception.ResourceNotFoundException;
+import com.example.user.filter.UserContext;
 import com.example.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,8 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -22,12 +25,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -103,46 +108,60 @@ public class UserDetailServiceTest {
     @Test
     void addBlackList_정상작동() throws JsonProcessingException {
         // given
-        String jwt = "some.jwt.token";
         Long userId = 1L;
         String reason = "로그아웃";
 
-        // 만료 시간: 현재 시간 + 30분
-        Date expiredDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
-        when(jwtTokenProvider.getExpiredDate(jwt)).thenReturn(expiredDate);
+        // mock된 expiration 시간: 현재 시간 + 1시간
+        Instant now = Instant.now();
+        Instant expiration = now.plus(Duration.ofHours(1));
+        String expirationStr = expiration.toString(); // ISO 8601 format
 
-        // objectMapper -> JSON 문자열 mock
-        String expectedJson = "{\"reason\":\"로그아웃\",\"timestamp\":\"2025-06-07T12:00:00\"}";
-        when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
+        // mock static method
+        try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
+            mockedUserContext.when(UserContext::getExpiration).thenReturn(expirationStr);
 
-        // when
-        userDetailService.addBlackList(userId, reason, jwt);
+            // JSON 문자열 mock
+            String expectedJson = "{\"reason\":\"로그아웃\",\"timestamp\":\"2025-06-07T12:00:00\"}";
+            when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
 
-        // then
-        verify(valueOperations).set(eq("BL_" + userId), eq(expectedJson), anyLong());
+            // when
+            userDetailService.addBlackList(userId, reason);
+
+            // then
+            ArgumentCaptor<Long> ttlCaptor = ArgumentCaptor.forClass(Long.class);
+            verify(valueOperations).set(eq("BL_" + userId), eq(expectedJson), ttlCaptor.capture(), eq(TimeUnit.SECONDS));
+
+            // TTL이 3500~3600초 사이인지 확인 (1시간 범위 오차)
+            Long capturedTtl = ttlCaptor.getValue();
+            assertTrue(capturedTtl >= 3500 && capturedTtl <= 3600, "TTL이 예상 범위 안에 있어야 합니다.");
+        }
     }
 
     @DisplayName("addBlackList_Json변환에러_로그출력")
     @Test
     void addBlackList_Json변환에러_로그출력() throws JsonProcessingException {
         // given
-        String jwt = "some.jwt.token";
         Long userId = 1L;
         String reason = "로그아웃";
 
-        // 만료 시간: 현재 시간 + 30분
-        Date expiredDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
-        when(jwtTokenProvider.getExpiredDate(jwt)).thenReturn(expiredDate);
+        // mock된 expiration 시간: 현재 시간 + 1시간
+        Instant now = Instant.now();
+        Instant expiration = now.plus(Duration.ofHours(1));
+        String expirationStr = expiration.toString(); // ISO 8601 format
 
-        // JsonProcessingException은 추상 클래스이므로 익명 객체로 생성
+        // JsonProcessingException은 추상 클래스이므로 mock 생성
         JsonProcessingException exception = mock(JsonProcessingException.class);
         when(objectMapper.writeValueAsString(any())).thenThrow(exception);
 
-        // when
-        userDetailService.addBlackList(userId, reason, jwt);
+        try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
+            mockedUserContext.when(UserContext::getExpiration).thenReturn(expirationStr);
 
-        // then
-        verify(valueOperations, never()).set(any(), any(), anyLong());
+            // when
+            userDetailService.addBlackList(userId, reason);
+
+            // then: Redis에 저장 시도 없어야 함
+            verify(valueOperations, never()).set(any(), any(), anyLong(), any());
+        }
     }
 
     @DisplayName("removeBlackList_정상작동")

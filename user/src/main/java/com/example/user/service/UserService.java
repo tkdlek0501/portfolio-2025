@@ -8,9 +8,9 @@ import com.example.user.dto.request.UserUpdateRequest;
 import com.example.user.dto.response.UserResponse;
 import com.example.user.exception.AlreadyExistsUserException;
 import com.example.user.exception.ResourceNotFoundException;
+import com.example.user.filter.UserContext;
 import com.example.user.repository.UserRepository;
 import com.example.user.security.UserDetailService;
-import com.example.user.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,9 +57,9 @@ public class UserService {
     }
 
     @Transactional
-    public void update(UserUpdateRequest request, String jwt) {
+    public void update(UserUpdateRequest request) {
 
-        long userId = JwtUtil.getId();
+        long userId = UserContext.getId();
         User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 
@@ -81,7 +81,7 @@ public class UserService {
         );
 
         // 블랙리스트 추가
-        userDetailService.addBlackList(userId, "유저 정보 수정", jwt);
+        userDetailService.addBlackList(userId, "유저 정보 수정");
 
         // board 서비스와 데이터 정합성 유지를 위한 동기화
         // 유저 정보 수정시 아웃박스 테이블에 PENDING 상태로 데이터 저장 + 카프카 메시지 발행 (각각 다른 리스너로 처리)
@@ -92,19 +92,19 @@ public class UserService {
     }
 
     @Transactional
-    public void withdrawal(String jwt) {
-        long userId = JwtUtil.getId();
+    public void withdrawal() {
+        long userId = UserContext.getId();
         User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 
         user.withdrawal();
 
-        userDetailService.addBlackList(userId, "유저 탈퇴", jwt);
+        userDetailService.addBlackList(userId, "유저 탈퇴");
     }
 
     @Transactional(readOnly = true)
     public UserResponse getMe() {
-        long userId = JwtUtil.getId();
+        long userId = UserContext.getId();
         User user = userRepository.findByIdAndStatus(userId, UserStatus.NORMAL)
                 .orElseThrow(() -> new ResourceNotFoundException("user"));
 

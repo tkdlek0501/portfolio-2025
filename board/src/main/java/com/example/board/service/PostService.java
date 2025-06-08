@@ -11,10 +11,10 @@ import com.example.board.dto.response.PostWrapResponse;
 import com.example.board.exception.NotAllowedLikeException;
 import com.example.board.exception.NotAllowedPostException;
 import com.example.board.exception.ResourceNotFoundException;
+import com.example.board.filter.UserContext;
 import com.example.board.repository.LikeRepository;
 import com.example.board.repository.PostCategoryRepository;
 import com.example.board.repository.PostRepository;
-import com.example.board.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -45,8 +45,8 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("postCategory"));
 
         Post post = Post.create(
-                JwtUtil.getId(),
-                JwtUtil.getNickname(),
+                UserContext.getId(),
+                UserContext.getNickname(),
                 request.postCategoryId(),
                 request.title(),
                 request.content()
@@ -57,7 +57,7 @@ public class PostService {
         PostCreatedEvent event = PostCreatedEvent.of(
                 UUID.randomUUID(),
                 post.getId(),
-                JwtUtil.getId(),
+                UserContext.getId(),
                 50
         );
         eventPublisher.publishEvent(event);
@@ -68,7 +68,7 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        if (post.getUserId() != JwtUtil.getId()) {
+        if (post.getUserId() != UserContext.getId()) {
             throw new NotAllowedPostException();
         }
 
@@ -83,7 +83,7 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-        if (post.getUserId() != JwtUtil.getId()) {
+        if (post.getUserId() != UserContext.getId()) {
             throw new NotAllowedPostException();
         }
 
@@ -106,7 +106,7 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("post"));
 
         // 게시글 조회 시 view count 증가 비동기 이벤트 호출
-        eventPublisher.publishEvent(PostViewIncreasedEvent.of(post.getId(), JwtUtil.getId()));
+        eventPublisher.publishEvent(PostViewIncreasedEvent.of(post.getId(), UserContext.getId()));
 
         return PostResponse.of(post.getId(), post.getNickname(), post.getTitle(), post.getContent(), post.getViewCount(), post.getLikeCount());
     }
@@ -128,7 +128,7 @@ public class PostService {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-            long userId = JwtUtil.getId();
+            long userId = UserContext.getId();
 
             Like like = likeRepository.findByPostIdAndUserId(id, userId)
                     .orElse(null);
@@ -189,7 +189,7 @@ public class PostService {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("post"));
 
-            long userId = JwtUtil.getId();
+            long userId = UserContext.getId();
 
             Like like = likeRepository.findByPostIdAndUserId(id, userId)
                     .orElseThrow(() -> new ResourceNotFoundException("like"));

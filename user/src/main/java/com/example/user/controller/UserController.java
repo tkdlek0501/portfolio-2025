@@ -6,7 +6,6 @@ import com.example.user.dto.response.GlobalResponse;
 import com.example.user.dto.response.UserResponse;
 import com.example.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,24 +27,23 @@ public class UserController {
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
-    @Operation(summary = "회원 정보 수정", description = "회원을 수정합니다.", security = @SecurityRequirement(name = "Authorization"))
+    @Operation(summary = "회원 정보 수정", description = "회원을 수정합니다.")
     @PutMapping("")
     public ResponseEntity<GlobalResponse<Object>> update(
-            @RequestHeader("Authorization") String jwt,
             @Valid @RequestBody UserUpdateRequest request
     ) {
-        userService.update(request, jwt);
+        userService.update(request);
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
-    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴 처리 합니다.", security = @SecurityRequirement(name = "Authorization"))
+    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴 처리 합니다.")
     @PatchMapping("")
-    public ResponseEntity<GlobalResponse<Object>> withdrawal(@RequestHeader("Authorization") String jwt) {
-        userService.withdrawal(jwt);
+    public ResponseEntity<GlobalResponse<Object>> withdrawal() {
+        userService.withdrawal();
         return ResponseEntity.ok(GlobalResponse.of());
     }
 
-    @Operation(summary = "회원 조회", description = "자신의 정보를 조회합니다.", security = @SecurityRequirement(name = "Authorization"))
+    @Operation(summary = "회원 조회", description = "자신의 정보를 조회합니다.")
     @GetMapping("")
     public ResponseEntity<GlobalResponse<UserResponse>> getMe() {
         return ResponseEntity.ok(GlobalResponse.of(userService.getMe()));

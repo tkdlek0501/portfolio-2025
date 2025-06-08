@@ -2,6 +2,7 @@ package com.example.user.security;
 
 import com.example.user.domain.entity.User;
 import com.example.user.exception.ResourceNotFoundException;
+import com.example.user.filter.UserContext;
 import com.example.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,19 +42,21 @@ public class UserDetailService implements UserDetailsService {
     }
 
     // 블랙리스트 추가
-    public void addBlackList(Long id, String reason, String jwt) {
+    public void addBlackList(Long id, String reason) {
         // 유저 정보를 JSON 형식으로 생성
         Map<String, String> userInfo = new HashMap<>();
         userInfo.put("reason", reason);
         userInfo.put("timestamp", LocalDateTime.now().toString());
 
         try {
-            Date expiredDate = jwtTokenProvider.getExpiredDate(jwt);
-            long ttl = expiredDate.getTime() - System.currentTimeMillis(); // ms 단위
-            long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(ttl); // jwt 남은 시간
+            String expirationTime = UserContext.getExpiration();
+
+            Instant expiration = Instant.parse(expirationTime);
+            long ttl = Duration.between(Instant.now(), expiration).toMillis();
+            long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(ttl); // JWT 남은 시간
 
             String userJson = objectMapper.writeValueAsString(userInfo);
-            redisTemplate.opsForValue().set("BL_" + id, userJson, ttlSeconds);
+            redisTemplate.opsForValue().set("BL_" + id, userJson, ttlSeconds, TimeUnit.SECONDS);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
         }
