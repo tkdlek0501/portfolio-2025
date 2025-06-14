@@ -114,7 +114,7 @@ public class UserDetailServiceTest {
         // mock된 expiration 시간: 현재 시간 + 1시간
         Instant now = Instant.now();
         Instant expiration = now.plus(Duration.ofHours(1));
-        String expirationStr = expiration.toString(); // ISO 8601 format
+        String expirationStr = String.valueOf(expiration.toEpochMilli()); // ISO 8601 format
 
         // mock static method
         try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
@@ -147,7 +147,7 @@ public class UserDetailServiceTest {
         // mock된 expiration 시간: 현재 시간 + 1시간
         Instant now = Instant.now();
         Instant expiration = now.plus(Duration.ofHours(1));
-        String expirationStr = expiration.toString(); // ISO 8601 format
+        String expirationStr = String.valueOf(expiration.toEpochMilli()); // ISO 8601 format
 
         // JsonProcessingException은 추상 클래스이므로 mock 생성
         JsonProcessingException exception = mock(JsonProcessingException.class);

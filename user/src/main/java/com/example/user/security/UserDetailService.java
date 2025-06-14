@@ -50,8 +50,9 @@ public class UserDetailService implements UserDetailsService {
 
         try {
             String expirationTime = UserContext.getExpiration();
+            long epochMillis = Long.parseLong(expirationTime);
 
-            Instant expiration = Instant.parse(expirationTime);
+            Instant expiration = Instant.ofEpochMilli(epochMillis);
             long ttl = Duration.between(Instant.now(), expiration).toMillis();
             long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(ttl); // JWT 남은 시간
 
