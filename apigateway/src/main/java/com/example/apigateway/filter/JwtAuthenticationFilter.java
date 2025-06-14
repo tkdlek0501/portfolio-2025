@@ -24,10 +24,11 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+// 인증/인가 필터
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class JwtAuthenticationFilter implements WebFilter { // security 와의 통합을 위해 AbstractGatewayFilterFactory 대신 씀
+public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtTokenProvidable<?> loginJwtTokenProvider;
     private final ReactiveRedisTemplate<String, String> redisTemplate;
@@ -64,26 +65,11 @@ public class JwtAuthenticationFilter implements WebFilter { // security 와의 �
         return redisTemplate.hasKey(blacklistKey)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
-                        log.info("[api-gateway-server] 로그아웃 처리된 토큰 jwt : {}", jwt);
+                        log.info("[api-gateway] 로그아웃된 토큰 감지: {}", jwt);
                         return unauthorizedResponse(response, "로그아웃된 토큰입니다.");
                     }
 
-                    Claims claims = loginJwtTokenProvider.getClaims(jwt);
-
-                    ServerHttpRequest mutatedRequest = request.mutate()
-                            .header("X-USER-ID", claims.get("id").toString())
-                            .header("X-USER-NAME", claims.get("name").toString())
-                            .header("X-USER-NICKNAME", claims.get("nickname").toString())
-                            .header("X-USER-ROLE", claims.get("role").toString())
-                            .header("X-USER-GRADE", claims.get("grade").toString())
-                            .header("X-USER-EXPIRATION", claims.get("expireAt").toString())
-                            .build();
-
-                    ServerWebExchange mutatedExchange = exchange.mutate()
-                            .request(mutatedRequest)
-                            .build();
-
-                    // 인증 객체 생성
+                    // SecurityContext 생성
                     UserDetails userDetails = loginJwtTokenProvider.getUserDetails(jwt);
                     Authentication authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -92,7 +78,7 @@ public class JwtAuthenticationFilter implements WebFilter { // security 와의 �
                     log.info("[api-gateway-server] 최종 Request URI: {}", request.getURI());
                     log.info("[api-gateway-server] 최종 Authorization Header: {}", request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
 
-                    return chain.filter(mutatedExchange)
+                    return chain.filter(exchange)
                             .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
                 });
     }
