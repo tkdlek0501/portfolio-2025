@@ -11,6 +11,7 @@ DB 설계부터 애플리케이션 개발, Docker 기반 인프라 환경 구성
 7. 모니터링(프로메테우스 + Grafana + Loki + Promtail)
 
 **기술스택**
+
 JAVA(JDK 21), SpringBoot(3.4.4), MySQL, Redis, Kafka, JPA, QueryDSL, 모니터링(프로메테우스, 그라파나, 로키, 프롬테일)
 Docker, Docker Compose
 
