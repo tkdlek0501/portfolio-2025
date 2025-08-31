@@ -22,7 +22,7 @@ Docker, Docker Compose
    - DB와 이벤트의 일관성을 보장하기 위해 아웃박스 패턴 도입
 2. Redis 기반 캐싱 및 동시성 관리
    - 회원 정보 변경 시 JWT 블랙리스트 캐싱으로 강제 로그아웃 처리
-   - 게시글 조회수 조회 시 Lua Script 기반 분산락 설계
+   - 게시글 조회수 조회 시 Lua Script 기반 락 설계
    - 동시에 여러 사용자가 좋아요를 누를 때 race condition 방지
    - 실시간성·일관성 유지와 DB 부하 감소
 3. API Gateway 설계
